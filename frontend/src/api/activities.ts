@@ -5,7 +5,7 @@ import type {
   ActivityStatus,
 } from '../types/api'
 
-interface ActivityQuery {
+export interface ActivityQuery {
   status?: ActivityStatus
   subjectId?: number
   dueBefore?: string

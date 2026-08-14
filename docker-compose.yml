@@ -1,0 +1,57 @@
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-2a_system}
+      MYSQL_USER: ${MYSQL_USER:-segundao}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-segundao_dev_password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_dev_password}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DB_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-2a_system}?createDatabaseIfNotExist=true&serverTimezone=America/Sao_Paulo
+      DB_USERNAME: ${MYSQL_USER:-segundao}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-segundao_dev_password}
+      DDL_AUTO: ${DDL_AUTO:-update}
+      FRONTEND_ORIGIN: http://localhost:${FRONTEND_PORT:-5173},http://127.0.0.1:${FRONTEND_PORT:-5173}
+      JWT_SECRET: ${JWT_SECRET:-docker-development-secret-change-me-before-production}
+      JWT_EXPIRATION_HOURS: ${JWT_EXPIRATION_HOURS:-24}
+      INITIAL_ADMIN_ENABLED: ${INITIAL_ADMIN_ENABLED:-false}
+      INITIAL_ADMIN_USERNAME: ${INITIAL_ADMIN_USERNAME:-}
+      INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:-}
+      INITIAL_ADMIN_DISPLAY_NAME: ${INITIAL_ADMIN_DISPLAY_NAME:-Initial Administrator}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  mysql_data:

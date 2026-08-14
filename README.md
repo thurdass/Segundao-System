@@ -87,5 +87,5 @@ O Segundão System nasce das necessidades reais da turma **2º Informática A** 
 - explorar notificações e novas formas de comunicação com a turma.
 
 <p align="center">
-  Feito para a turma <strong>2º Informática A</strong>.
+  <strong>Feito por Arthur da Silva Mendes de Almeida</strong>.
 </p>

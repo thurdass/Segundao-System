@@ -24,6 +24,7 @@ logging:
 
 app:
   timezone: America/Sao_Paulo
+  frontend-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
   jwt:
     secret: ${JWT_SECRET:change-this-development-secret-to-a-long-random-value}
     expiration-hours: ${JWT_EXPIRATION_HOURS:24}

@@ -25,4 +25,14 @@ class CorsIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"));
     }
+
+    @Test
+    void allowsLoopbackFrontendOriginForPreflightRequests() throws Exception {
+        mockMvc.perform(options("/api/activities")
+                        .header("Origin", "http://127.0.0.1:5173")
+                        .header("Access-Control-Request-Method", "GET")
+                        .header("Access-Control-Request-Headers", "Authorization"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", "http://127.0.0.1:5173"));
+    }
 }

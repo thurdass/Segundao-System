@@ -24,7 +24,7 @@ logging:
 
 app:
   timezone: America/Sao_Paulo
-  frontend-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
+  frontend-origin: ${FRONTEND_ORIGIN:http://localhost:5173,http://127.0.0.1:5173}
   bootstrap:
     initial-admin:
       enabled: ${INITIAL_ADMIN_ENABLED:false}

@@ -50,6 +50,20 @@ api.interceptors.response.use(
 
 export function getApiErrorMessage(error: unknown, fallback: string): string {
   if (axios.isAxiosError<ApiErrorPayload>(error)) {
+    const status = error.response?.status
+
+    if (status === 401) {
+      return 'Usuário ou senha inválidos, ou sessão expirada.'
+    }
+
+    if (status === 403) {
+      return 'Acesso negado.'
+    }
+
+    if (status === 400 || status === 422) {
+      return 'Dados inválidos. Confira os campos informados.'
+    }
+
     const message = error.response?.data?.message
 
     if (message) {

@@ -1,39 +1,190 @@
-# 2A System
+# Segundão System
 
-API REST do 2º Informática A, preparada para organizar atividades, avisos, disciplinas, professores e horários da turma.
+<p align="center">
+  <img src="img.png" width="320" alt="Turma 2º Informática A">
+</p>
 
-## Stack e execução
+<p align="center">
+  API REST desenvolvida para a turma <strong>2º Informática A</strong>, com foco na organização de atividades, avisos, disciplinas, professores e horários.
+</p>
 
-Java 21, Spring Boot 4, Spring Web MVC, Spring Data JPA, MySQL, Bean Validation, Lombok, Spring Security, JWT e BCrypt.
+<h2 align="center">🛠 Technologies</h2>
 
-Configure `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET` (ao menos 32 caracteres) e opcionalmente `DDL_AUTO`. O padrão usa MySQL em `2a_system` e timezone `America/Sao_Paulo`. Execute com `./mvnw spring-boot:run` ou `./mvnw test`.
+<h3 align="center">☕ Backend</h3>
 
-Em desenvolvimento, a aplicação cria uma turma inicial `2A / Informática / 2026 / Manhã`. A promoção do primeiro usuário para administrador deve ser feita de forma controlada no banco (`role = 'ADMIN'`); não há credencial administrativa padrão.
+<p align="center">
+  <img src="https://skillicons.dev/icons?i=java,spring,mysql,maven" />
+</p>
 
-## Endpoints principais
+<h3 align="center">🧰 Tools</h3>
 
-- `POST /api/auth/login`, `GET /api/auth/me`, `PATCH /api/auth/password`
-- `POST /api/admin/users`, `GET/PATCH /api/admin/users`, `GET /api/admin/users/{id}`
-- `GET /api/subjects?classroomId=1`, `GET /api/teachers`, `GET /api/teachers/{id}/subjects`
-- `GET /api/schedules/classroom/{id}`; alterações de catálogo exigem `ADMIN`
-- `GET/POST /api/activities`, `POST/DELETE /api/activities/{id}/complete`; use `status=pending|completed`, `subjectId` e `dueBefore`
-- `GET/POST/PUT/DELETE /api/announcements`
-- `GET /api/subjects/{subjectId}/next-class` consulta a próxima ocorrência da disciplina da turma do aluno autenticado
-- `GET/PATCH /api/admin/users`, `GET /api/admin/users/{id}`, `GET /api/admin/dashboard`
+<p align="center">
+  <img src="https://skillicons.dev/icons?i=git,github,docker,linux,idea,postman" />
+</p>
 
-Envie o token como `Authorization: Bearer <jwt>`. Alunos só enxergam dados da própria turma; criadores editam/removem seus conteúdos e administradores podem gerenciar qualquer conteúdo. Conclusões de atividades são individuais. Ausência ou falha de autenticação retorna `401`; falta de permissão retorna `403`.
+---
 
-## Contas gerenciadas pelo administrador
+## Sobre o projeto
 
-Não existe cadastro público. Apenas um usuário com role `ADMIN` pode criar contas de alunos:
+O **Segundão System** foi criado para auxiliar a organização da turma **2º Informática A**.
 
-```text
+A plataforma permite que cada aluno utilize sua própria conta para acompanhar:
+
+* atividades;
+* prazos;
+* avisos;
+* disciplinas;
+* professores;
+* horários.
+
+As atividades pertencem à turma, mas a conclusão é individual para cada aluno.
+
+Isso significa que um aluno pode marcar uma atividade como concluída sem alterar o status dela para os demais.
+
+O projeto foi desenvolvido inicialmente como uma **API REST em Spring Boot**.
+
+Um frontend separado será desenvolvido posteriormente em React para consumir essa API.
+
+---
+
+## Sobre a escola
+
+O projeto foi desenvolvido para alunos do [Centro Territorial de Educação Profissional Piemonte do Paraguaçu II](https://escolas.educacao.ba.gov.br/node/12568).
+
+O **Centro Territorial de Educação Profissional Piemonte do Paraguaçu II** é uma escola técnica localizada no município de **Mundo Novo, Bahia**.
+
+---
+
+## Stack
+
+* Java 21
+* Spring Boot 4
+* Spring Web MVC
+* Spring Data JPA
+* Spring Security
+* MySQL
+* H2 para testes
+* Bean Validation
+* Lombok
+* JWT
+* BCrypt
+* Maven
+
+---
+
+## Configuração
+
+A aplicação utiliza variáveis de ambiente para configurações sensíveis.
+
+Configure:
+
+```text id="w5j12v"
+DB_URL
+DB_USERNAME
+DB_PASSWORD
+JWT_SECRET
+```
+
+Opcionalmente:
+
+```text id="9fq7gi"
+DDL_AUTO
+```
+
+Exemplo:
+
+```text id="r7bpdn"
+DB_URL=jdbc:mysql://localhost:3306/2a_system
+DB_USERNAME=seu_usuario
+DB_PASSWORD=sua_senha
+JWT_SECRET=uma_chave_com_pelo_menos_32_caracteres
+```
+
+Nunca envie senhas, tokens ou segredos para o repositório.
+
+A aplicação utiliza:
+
+```text id="o4md78"
+America/Sao_Paulo
+```
+
+como timezone padrão.
+
+---
+
+## Execução
+
+Para iniciar a aplicação:
+
+```bash id="4k4n9x"
+./mvnw spring-boot:run
+```
+
+Para executar os testes:
+
+```bash id="fxh2be"
+./mvnw clean test
+```
+
+Em desenvolvimento, a aplicação cria automaticamente a turma inicial:
+
+```text id="476yoc"
+2A / Informática / 2026 / Manhã
+```
+
+---
+
+## Autenticação
+
+O sistema utiliza autenticação com **JWT**.
+
+Cada aluno possui seu próprio usuário.
+
+As contas são criadas exclusivamente por usuários com role:
+
+```text id="aqhoho"
+ADMIN
+```
+
+Não existe cadastro público.
+
+Cada conta utiliza:
+
+* username único;
+* username normalizado em lowercase;
+* senha criptografada com BCrypt;
+* role `STUDENT` ou `ADMIN`;
+* controle de usuário ativo ou desativado;
+* troca obrigatória de senha no primeiro acesso.
+
+O token deve ser enviado em requisições autenticadas:
+
+```http id="94pfz3"
+Authorization: Bearer <jwt>
+```
+
+---
+
+## Login
+
+```text id="st478m"
+POST /api/auth/login
+GET  /api/auth/me
+```
+
+---
+
+## Criação de usuários
+
+Somente usuários com role `ADMIN` podem criar novas contas:
+
+```text id="tvva6t"
 POST /api/admin/users
 ```
 
-Exemplo de requisição sem credenciais reais:
+Exemplo:
 
-```json
+```json id="sqnhp0"
 {
   "username": "arthur",
   "password": "senhaInicialFicticia",
@@ -43,31 +194,178 @@ Exemplo de requisição sem credenciais reais:
 }
 ```
 
-O username é normalizado para lowercase, precisa ser único e a senha inicial é armazenada com BCrypt. A resposta nunca contém a senha nem o hash. O endpoint exige `ADMIN`; usuários não autenticados ou estudantes não podem criar contas.
+O username é normalizado para lowercase.
 
-Contas criadas pelo administrador começam com `mustChangePassword: true`. O aluno consegue fazer o login inicial, mas deve trocar a senha antes de acessar atividades, avisos, horários e demais recursos normais:
+A senha inicial é armazenada com BCrypt.
 
-```text
+A API nunca retorna:
+
+* senha;
+* hash BCrypt;
+* tokens internos;
+* informações sensíveis.
+
+---
+
+## Primeiro acesso
+
+Contas criadas pelo administrador começam com:
+
+```text id="x0djfl"
+mustChangePassword: true
+```
+
+O aluno pode realizar o login inicial, mas precisa trocar a senha antes de utilizar o restante do sistema.
+
+Endpoint:
+
+```text id="jyarq1"
 PATCH /api/auth/password
 ```
 
-```json
+Exemplo:
+
+```json id="8yon9e"
 {
   "currentPassword": "senhaInicialFicticia",
   "newPassword": "novaSenhaFicticia"
 }
 ```
 
-Enquanto a troca for obrigatória, apenas `GET /api/auth/me` e `PATCH /api/auth/password` ficam disponíveis, além do login. Depois da troca, `mustChangePassword` passa a `false` e o acesso normal é liberado. O login e o `/api/auth/me` informam esse estado sem expor qualquer senha.
+Enquanto `mustChangePassword` for `true`, o usuário pode acessar apenas:
 
-Exemplo de consulta da próxima aula:
+```text id="ytjycy"
+POST  /api/auth/login
+GET   /api/auth/me
+PATCH /api/auth/password
+```
 
-```text
+Depois da troca:
+
+```text id="qrvyop"
+mustChangePassword = false
+```
+
+e o acesso normal é liberado.
+
+---
+
+## Disciplinas
+
+```text id="hdmk0w"
+GET  /api/subjects?classroomId=1
+POST /api/subjects
+```
+
+Alterações exigem role `ADMIN`.
+
+---
+
+## Professores
+
+```text id="afh4mn"
+GET /api/teachers
+GET /api/teachers/{id}
+GET /api/teachers/{id}/subjects
+
+POST /api/teachers
+PUT  /api/teachers/{id}
+```
+
+Criação e alteração exigem `ADMIN`.
+
+---
+
+## Horários
+
+```text id="gjp0qv"
+GET    /api/schedules/classroom/{id}
+POST   /api/schedules
+DELETE /api/schedules/{id}
+```
+
+Alterações exigem `ADMIN`.
+
+---
+
+## Atividades
+
+```text id="n6982e"
+GET    /api/activities
+GET    /api/activities/{id}
+POST   /api/activities
+PUT    /api/activities/{id}
+DELETE /api/activities/{id}
+```
+
+Filtros disponíveis:
+
+```text id="wsqi27"
+GET /api/activities?status=pending
+GET /api/activities?status=completed
+GET /api/activities?subjectId=1
+GET /api/activities?dueBefore=2026-08-30
+```
+
+Regras:
+
+* atividades pertencem a uma turma;
+* alunos veem apenas atividades da própria turma;
+* o criador é obtido pelo usuário autenticado;
+* alunos não podem criar atividades para outras turmas;
+* o criador pode editar e excluir sua própria atividade;
+* administradores podem editar e excluir qualquer atividade.
+
+---
+
+## Conclusão individual
+
+A conclusão de uma atividade é individual para cada aluno.
+
+Endpoints:
+
+```text id="ewm25n"
+POST   /api/activities/{id}/complete
+DELETE /api/activities/{id}/complete
+```
+
+Quando um aluno conclui uma atividade, ela continua pendente para os demais alunos até que cada um conclua individualmente.
+
+---
+
+## Prazo pela próxima aula
+
+Ao cadastrar uma atividade, o sistema suporta:
+
+```text id="fjnd5v"
+CUSTOM_DATE
+NEXT_CLASS
+```
+
+Com:
+
+```text id="bizyj8"
+NEXT_CLASS
+```
+
+o sistema consulta automaticamente os horários da disciplina e calcula a próxima aula futura.
+
+Também existe:
+
+```text id="5kk26l"
+GET /api/subjects/{subjectId}/next-class
+```
+
+Exemplo:
+
+```http id="luh8md"
 GET /api/subjects/1/next-class
 Authorization: Bearer <jwt>
 ```
 
-```json
+Resposta:
+
+```json id="8q6ra3"
 {
   "subjectId": 1,
   "subjectName": "Desenvolvimento Web",
@@ -78,8 +376,156 @@ Authorization: Bearer <jwt>
 }
 ```
 
-Os testes usam H2 em memória e cobrem autenticação, criação administrativa de usuários, login inicial, troca obrigatória de senha, JWT, atividades, conclusão individual, filtros, permissões STUDENT/ADMIN, horários e os endpoints de próxima aula e administração. Execute `./mvnw clean test` para reproduzi-los.
+O cálculo considera:
 
-## Estado e próximos passos
+* dia e horário atual;
+* aulas que já passaram;
+* próximas ocorrências da semana;
+* virada da semana;
+* múltiplos horários da mesma disciplina;
+* disciplinas sem horário cadastrado.
 
-O backend MVP está implementado sem frontend. A integração de chat com IA, histórico, limites de uso e troca segura de provedor será uma etapa futura; nenhuma chave ou API de IA é usada no repositório. Também ficam para evolução a auditoria segura de acessos, migrações de banco, documentação OpenAPI e preparação formal do contrato para o frontend. `AccessLog` ainda não está implementado.
+---
+
+## Avisos
+
+```text id="yzvl5v"
+GET    /api/announcements
+GET    /api/announcements/{id}
+POST   /api/announcements
+PUT    /api/announcements/{id}
+DELETE /api/announcements/{id}
+```
+
+Regras:
+
+* avisos pertencem à turma do criador;
+* alunos veem apenas avisos da própria turma;
+* criadores podem editar e excluir seus próprios avisos;
+* administradores podem gerenciar qualquer aviso;
+* administradores podem fixar avisos;
+* avisos fixados aparecem primeiro.
+
+---
+
+## Administração
+
+Endpoints administrativos:
+
+```text id="1zdyy5"
+POST  /api/admin/users
+GET   /api/admin/users
+GET   /api/admin/users/{id}
+PATCH /api/admin/users/{id}/status
+GET   /api/admin/dashboard
+```
+
+Todos exigem:
+
+```text id="wjipzl"
+ADMIN
+```
+
+O dashboard atualmente informa:
+
+* quantidade total de usuários;
+* usuários ativos;
+* atividades ativas;
+* avisos ativos.
+
+---
+
+## Segurança
+
+Sem autenticação válida:
+
+```text id="0fcy76"
+401 Unauthorized
+```
+
+Usuário autenticado sem permissão:
+
+```text id="ctoszb"
+403 Forbidden
+```
+
+Alunos só podem acessar dados relacionados à própria turma.
+
+---
+
+## Testes
+
+Os testes utilizam **H2 em memória**.
+
+A suíte cobre:
+
+* autenticação;
+* login;
+* JWT;
+* criação administrativa de usuários;
+* troca obrigatória de senha;
+* permissões `STUDENT` e `ADMIN`;
+* atividades;
+* conclusão individual;
+* filtros;
+* horários;
+* cálculo da próxima aula;
+* endpoint de próxima aula;
+* endpoints administrativos;
+* restrições de acesso.
+
+Execute:
+
+```bash id="c83tvl"
+./mvnw clean test
+```
+
+---
+
+## Estado atual
+
+O backend do MVP está funcional.
+
+Já estão implementados:
+
+* autenticação;
+* criação de usuários pelo administrador;
+* troca obrigatória de senha;
+* usuários;
+* turmas;
+* disciplinas;
+* professores;
+* horários;
+* atividades;
+* conclusão individual;
+* prazos;
+* avisos;
+* administração básica;
+* testes automatizados;
+* integração com MySQL.
+
+---
+
+## Próximos passos
+
+Planejado para próximas etapas:
+
+* frontend em React;
+* auditoria segura de acessos;
+* OpenAPI / Swagger;
+* migrações de banco;
+* Docker;
+* CI/CD;
+* notificações;
+* melhorias no painel administrativo;
+* chat com inteligência artificial.
+
+A integração com IA ainda não utiliza nenhuma API ou chave externa.
+
+---
+
+## Status
+
+Backend do MVP funcional e em evolução.
+
+O frontend será desenvolvido separadamente em React.

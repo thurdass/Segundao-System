@@ -82,6 +82,12 @@ export interface Subject {
   classroomId: number
 }
 
+export interface SubjectRequest {
+  name: string
+  shortName?: string
+  classroomId: number
+}
+
 export interface Teacher {
   id: number
   name: string
@@ -89,11 +95,26 @@ export interface Teacher {
   active: boolean
 }
 
+export interface TeacherRequest {
+  name: string
+  email?: string
+  subjectIds?: number[]
+}
+
 export interface Schedule {
   id: number
   classroomId: number
   subjectId: number
   teacherId: number | null
+  dayOfWeek: DayOfWeek
+  startTime: string
+  endTime: string
+}
+
+export interface ScheduleRequest {
+  classroomId: number
+  subjectId: number
+  teacherId?: number | null
   dayOfWeek: DayOfWeek
   startTime: string
   endTime: string

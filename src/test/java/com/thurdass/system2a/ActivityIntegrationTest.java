@@ -33,15 +33,24 @@ import static org.junit.jupiter.api.Assertions.*;
 class ActivityIntegrationTest {
     private static final Pattern ID = Pattern.compile("\"id\":(\\d+)");
 
-    @Autowired MockMvc mockMvc;
-    @Autowired ClassroomRepository classroomRepository;
-    @Autowired UserRepository userRepository;
-    @Autowired SubjectRepository subjectRepository;
-    @Autowired ActivityRepository activityRepository;
-    @Autowired CompletionRepository completionRepository;
-    @Autowired ClassScheduleRepository scheduleRepository;
-    @Autowired PasswordEncoder passwordEncoder;
-    @Autowired JwtService jwtService;
+    @Autowired
+    MockMvc mockMvc;
+    @Autowired
+    ClassroomRepository classroomRepository;
+    @Autowired
+    UserRepository userRepository;
+    @Autowired
+    SubjectRepository subjectRepository;
+    @Autowired
+    ActivityRepository activityRepository;
+    @Autowired
+    CompletionRepository completionRepository;
+    @Autowired
+    ClassScheduleRepository scheduleRepository;
+    @Autowired
+    PasswordEncoder passwordEncoder;
+    @Autowired
+    JwtService jwtService;
 
     @Test
     void createsActivityUsingAuthenticatedCreatorAndOwnClassroom() throws Exception {

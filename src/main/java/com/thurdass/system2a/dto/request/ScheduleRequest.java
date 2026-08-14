@@ -1,1 +1,9 @@
-package com.thurdass.system2a.dto.request; import jakarta.validation.constraints.*; import java.time.*; public record ScheduleRequest(@NotNull Long classroomId,@NotNull Long subjectId,Long teacherId,@NotNull DayOfWeek dayOfWeek,@NotNull LocalTime startTime,@NotNull LocalTime endTime){}
+package com.thurdass.system2a.dto.request;
+
+import jakarta.validation.constraints.*;
+
+import java.time.*;
+
+public record ScheduleRequest(@NotNull Long classroomId, @NotNull Long subjectId, Long teacherId,
+                              @NotNull DayOfWeek dayOfWeek, @NotNull LocalTime startTime, @NotNull LocalTime endTime) {
+}

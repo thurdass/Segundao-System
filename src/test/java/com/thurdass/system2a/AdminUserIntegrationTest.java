@@ -22,11 +22,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 class AdminUserIntegrationTest {
-    @Autowired MockMvc mockMvc;
-    @Autowired ClassroomRepository classroomRepository;
-    @Autowired UserRepository userRepository;
-    @Autowired PasswordEncoder passwordEncoder;
-    @Autowired JwtService jwtService;
+    @Autowired
+    MockMvc mockMvc;
+    @Autowired
+    ClassroomRepository classroomRepository;
+    @Autowired
+    UserRepository userRepository;
+    @Autowired
+    PasswordEncoder passwordEncoder;
+    @Autowired
+    JwtService jwtService;
 
     @Test
     void administratorCanReadUserDetailsWithoutSensitiveFields() throws Exception {

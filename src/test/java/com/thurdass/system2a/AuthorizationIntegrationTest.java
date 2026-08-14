@@ -28,14 +28,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 @AutoConfigureMockMvc
 class AuthorizationIntegrationTest {
-    @Autowired MockMvc mockMvc;
-    @Autowired ClassroomRepository classroomRepository;
-    @Autowired UserRepository userRepository;
-    @Autowired SubjectRepository subjectRepository;
-    @Autowired TeacherRepository teacherRepository;
-    @Autowired ClassScheduleRepository scheduleRepository;
-    @Autowired PasswordEncoder passwordEncoder;
-    @Autowired JwtService jwtService;
+    @Autowired
+    MockMvc mockMvc;
+    @Autowired
+    ClassroomRepository classroomRepository;
+    @Autowired
+    UserRepository userRepository;
+    @Autowired
+    SubjectRepository subjectRepository;
+    @Autowired
+    TeacherRepository teacherRepository;
+    @Autowired
+    ClassScheduleRepository scheduleRepository;
+    @Autowired
+    PasswordEncoder passwordEncoder;
+    @Autowired
+    JwtService jwtService;
 
     @Test
     void studentCannotChangeSchoolCatalogOrAccessAdminRoutes() throws Exception {

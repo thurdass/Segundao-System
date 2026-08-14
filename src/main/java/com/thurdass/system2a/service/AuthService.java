@@ -1,8 +1,45 @@
 package com.thurdass.system2a.service;
-import com.thurdass.system2a.dto.request.*; import com.thurdass.system2a.dto.response.*; import com.thurdass.system2a.entity.User; import com.thurdass.system2a.exception.*; import com.thurdass.system2a.repository.*; import com.thurdass.system2a.security.JwtService; import org.springframework.security.authentication.*; import org.springframework.security.crypto.password.PasswordEncoder; import org.springframework.stereotype.Service; import org.springframework.transaction.annotation.Transactional; 
-@Service public class AuthService {
- private final UserRepository users; private final ClassroomRepository classrooms; private final PasswordEncoder encoder; private final AuthenticationManager auth; private final JwtService jwt;
- public AuthService(UserRepository u,ClassroomRepository c,PasswordEncoder e,AuthenticationManager a,JwtService j){users=u;classrooms=c;encoder=e;auth=a;jwt=j;}
- @Transactional public AuthResponse register(RegisterRequest r){String username=r.username().trim().toLowerCase(); if(users.existsByUsernameIgnoreCase(username))throw new BusinessException("Username already in use"); var c=classrooms.findById(r.classroomId()).orElseThrow(()->new ResourceNotFoundException("Classroom not found")); User u=new User(username,encoder.encode(r.password()),r.displayName().trim(),c); users.save(u); return new AuthResponse(jwt.generate(u),UserResponse.from(u));}
- public AuthResponse login(LoginRequest r){var u=users.findByUsernameIgnoreCase(r.username().trim()).orElseThrow(()->new BadCredentialsException("Invalid credentials")); auth.authenticate(new UsernamePasswordAuthenticationToken(r.username(),r.password())); return new AuthResponse(jwt.generate(u),UserResponse.from(u));}
+
+import com.thurdass.system2a.dto.request.*;
+import com.thurdass.system2a.dto.response.*;
+import com.thurdass.system2a.entity.User;
+import com.thurdass.system2a.exception.*;
+import com.thurdass.system2a.repository.*;
+import com.thurdass.system2a.security.JwtService;
+import org.springframework.security.authentication.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class AuthService {
+    private final UserRepository users;
+    private final ClassroomRepository classrooms;
+    private final PasswordEncoder encoder;
+    private final AuthenticationManager auth;
+    private final JwtService jwt;
+
+    public AuthService(UserRepository u, ClassroomRepository c, PasswordEncoder e, AuthenticationManager a, JwtService j) {
+        users = u;
+        classrooms = c;
+        encoder = e;
+        auth = a;
+        jwt = j;
+    }
+
+    @Transactional
+    public AuthResponse register(RegisterRequest r) {
+        String username = r.username().trim().toLowerCase();
+        if (users.existsByUsernameIgnoreCase(username)) throw new BusinessException("Username already in use");
+        var c = classrooms.findById(r.classroomId()).orElseThrow(() -> new ResourceNotFoundException("Classroom not found"));
+        User u = new User(username, encoder.encode(r.password()), r.displayName().trim(), c);
+        users.save(u);
+        return new AuthResponse(jwt.generate(u), UserResponse.from(u));
+    }
+
+    public AuthResponse login(LoginRequest r) {
+        var u = users.findByUsernameIgnoreCase(r.username().trim()).orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+        auth.authenticate(new UsernamePasswordAuthenticationToken(r.username(), r.password()));
+        return new AuthResponse(jwt.generate(u), UserResponse.from(u));
+    }
 }

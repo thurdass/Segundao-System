@@ -1,1 +1,10 @@
-package com.thurdass.system2a.dto.request; import com.thurdass.system2a.enums.DeadlineMode; import jakarta.validation.constraints.*; import java.time.*; public record ActivityRequest(@NotBlank String title,String description,@NotNull Long subjectId,@NotNull DeadlineMode deadlineMode,LocalDate dueDate){}
+package com.thurdass.system2a.dto.request;
+
+import com.thurdass.system2a.enums.DeadlineMode;
+import jakarta.validation.constraints.*;
+
+import java.time.*;
+
+public record ActivityRequest(@NotBlank String title, String description, @NotNull Long subjectId,
+                              @NotNull DeadlineMode deadlineMode, LocalDate dueDate) {
+}

@@ -29,13 +29,20 @@ class NextClassEndpointIntegrationTest {
     private static final ZoneId ZONE = ZoneId.of("America/Sao_Paulo");
     private static final LocalDate DATE = LocalDate.of(2026, 8, 13);
 
-    @Autowired MockMvc mockMvc;
-    @Autowired ClassroomRepository classroomRepository;
-    @Autowired UserRepository userRepository;
-    @Autowired SubjectRepository subjectRepository;
-    @Autowired ClassScheduleRepository scheduleRepository;
-    @Autowired PasswordEncoder passwordEncoder;
-    @Autowired JwtService jwtService;
+    @Autowired
+    MockMvc mockMvc;
+    @Autowired
+    ClassroomRepository classroomRepository;
+    @Autowired
+    UserRepository userRepository;
+    @Autowired
+    SubjectRepository subjectRepository;
+    @Autowired
+    ClassScheduleRepository scheduleRepository;
+    @Autowired
+    PasswordEncoder passwordEncoder;
+    @Autowired
+    JwtService jwtService;
 
     @Test
     void returnsNextOccurrenceAndAllScheduleFields() throws Exception {

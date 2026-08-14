@@ -1,3 +1,71 @@
 package com.thurdass.system2a.controller;
-import com.thurdass.system2a.dto.request.AnnouncementRequest; import com.thurdass.system2a.dto.response.AnnouncementResponse; import com.thurdass.system2a.entity.*; import com.thurdass.system2a.exception.ResourceNotFoundException; import com.thurdass.system2a.repository.AnnouncementRepository; import jakarta.validation.Valid; import org.springframework.security.access.AccessDeniedException; import org.springframework.security.core.annotation.AuthenticationPrincipal; import org.springframework.web.bind.annotation.*; import java.util.*;
-@RestController @RequestMapping("/api/announcements") public class AnnouncementController {final AnnouncementRepository repo;public AnnouncementController(AnnouncementRepository r){repo=r;} @GetMapping public List<AnnouncementResponse> list(@AuthenticationPrincipal User u){return repo.findByClassroomIdAndActiveTrueOrderByPinnedDescCreatedAtDesc(u.getClassroom().getId()).stream().map(AnnouncementResponse::of).toList();} @GetMapping("/{id}") public AnnouncementResponse get(@PathVariable Long id,@AuthenticationPrincipal User u){var a=find(id);if(!a.getClassroom().getId().equals(u.getClassroom().getId()))throw new ResourceNotFoundException("Announcement not found");return AnnouncementResponse.of(a);} @PostMapping public AnnouncementResponse add(@Valid @RequestBody AnnouncementRequest r,@AuthenticationPrincipal User u){var a=new Announcement();a.setTitle(r.title().trim());a.setContent(r.content().trim());a.setCreatedBy(u);a.setClassroom(u.getClassroom());a.setPinned(r.pinned()&&u.getRole().name().equals("ADMIN"));return AnnouncementResponse.of(repo.save(a));} @PutMapping("/{id}") public AnnouncementResponse edit(@PathVariable Long id,@Valid @RequestBody AnnouncementRequest r,@AuthenticationPrincipal User u){var a=find(id);if(!a.getCreatedBy().getId().equals(u.getId())&&!u.getRole().name().equals("ADMIN"))throw new AccessDeniedException("Only creator or admin can edit");a.setTitle(r.title().trim());a.setContent(r.content().trim());if(u.getRole().name().equals("ADMIN"))a.setPinned(r.pinned());return AnnouncementResponse.of(repo.save(a));} @DeleteMapping("/{id}") public void delete(@PathVariable Long id,@AuthenticationPrincipal User u){var a=find(id);if(!a.getCreatedBy().getId().equals(u.getId())&&!u.getRole().name().equals("ADMIN"))throw new AccessDeniedException("Only creator or admin can delete");a.setActive(false);repo.save(a);} private Announcement find(Long id){return repo.findById(id).orElseThrow(()->new ResourceNotFoundException("Announcement not found"));}}
+
+import com.thurdass.system2a.dto.request.AnnouncementRequest;
+import com.thurdass.system2a.dto.response.AnnouncementResponse;
+import com.thurdass.system2a.entity.*;
+import com.thurdass.system2a.exception.ResourceNotFoundException;
+import com.thurdass.system2a.repository.AnnouncementRepository;
+import jakarta.validation.Valid;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.*;
+
+@RestController
+@RequestMapping("/api/announcements")
+public class AnnouncementController {
+    final AnnouncementRepository repo;
+
+    public AnnouncementController(AnnouncementRepository r) {
+        repo = r;
+    }
+
+    @GetMapping
+    public List<AnnouncementResponse> list(@AuthenticationPrincipal User u) {
+        return repo.findByClassroomIdAndActiveTrueOrderByPinnedDescCreatedAtDesc(u.getClassroom().getId()).stream().map(AnnouncementResponse::of).toList();
+    }
+
+    @GetMapping("/{id}")
+    public AnnouncementResponse get(@PathVariable Long id, @AuthenticationPrincipal User u) {
+        var a = find(id);
+        if (!a.getClassroom().getId().equals(u.getClassroom().getId()))
+            throw new ResourceNotFoundException("Announcement not found");
+        return AnnouncementResponse.of(a);
+    }
+
+    @PostMapping
+    public AnnouncementResponse add(@Valid @RequestBody AnnouncementRequest r, @AuthenticationPrincipal User u) {
+        var a = new Announcement();
+        a.setTitle(r.title().trim());
+        a.setContent(r.content().trim());
+        a.setCreatedBy(u);
+        a.setClassroom(u.getClassroom());
+        a.setPinned(r.pinned() && u.getRole().name().equals("ADMIN"));
+        return AnnouncementResponse.of(repo.save(a));
+    }
+
+    @PutMapping("/{id}")
+    public AnnouncementResponse edit(@PathVariable Long id, @Valid @RequestBody AnnouncementRequest r, @AuthenticationPrincipal User u) {
+        var a = find(id);
+        if (!a.getCreatedBy().getId().equals(u.getId()) && !u.getRole().name().equals("ADMIN"))
+            throw new AccessDeniedException("Only creator or admin can edit");
+        a.setTitle(r.title().trim());
+        a.setContent(r.content().trim());
+        if (u.getRole().name().equals("ADMIN")) a.setPinned(r.pinned());
+        return AnnouncementResponse.of(repo.save(a));
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id, @AuthenticationPrincipal User u) {
+        var a = find(id);
+        if (!a.getCreatedBy().getId().equals(u.getId()) && !u.getRole().name().equals("ADMIN"))
+            throw new AccessDeniedException("Only creator or admin can delete");
+        a.setActive(false);
+        repo.save(a);
+    }
+
+    private Announcement find(Long id) {
+        return repo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Announcement not found"));
+    }
+}

@@ -1,3 +1,44 @@
 package com.thurdass.system2a.entity;
-import jakarta.persistence.*; import lombok.*; import java.time.*;
-@Entity @Getter @Setter @NoArgsConstructor public class Activity { @Id @GeneratedValue(strategy=GenerationType.IDENTITY) Long id; @Column(nullable=false,length=160) String title; @Column(length=2000) String description; @Column(nullable=false) LocalDate dueDate; @Column(nullable=false) LocalDateTime createdAt; LocalDateTime updatedAt; @ManyToOne(optional=false) Subject subject; @ManyToOne(optional=false) Classroom classroom; @ManyToOne(optional=false) User createdBy; @Column(nullable=false) boolean active=true; @PrePersist void created(){createdAt=LocalDateTime.now();updatedAt=createdAt;} @PreUpdate void updated(){updatedAt=LocalDateTime.now();} }
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.*;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+public class Activity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
+    @Column(nullable = false, length = 160)
+    String title;
+    @Column(length = 2000)
+    String description;
+    @Column(nullable = false)
+    LocalDate dueDate;
+    @Column(nullable = false)
+    LocalDateTime createdAt;
+    LocalDateTime updatedAt;
+    @ManyToOne(optional = false)
+    Subject subject;
+    @ManyToOne(optional = false)
+    Classroom classroom;
+    @ManyToOne(optional = false)
+    User createdBy;
+    @Column(nullable = false)
+    boolean active = true;
+
+    @PrePersist
+    void created() {
+        createdAt = LocalDateTime.now();
+        updatedAt = createdAt;
+    }
+
+    @PreUpdate
+    void updated() {
+        updatedAt = LocalDateTime.now();
+    }
+}

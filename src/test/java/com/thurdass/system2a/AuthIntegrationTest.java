@@ -32,10 +32,14 @@ class AuthIntegrationTest {
     private static final String PASSWORD = "password123";
     private static final Pattern TOKEN = Pattern.compile("\"token\":\"([^\"]+)\"");
 
-    @Autowired MockMvc mockMvc;
-    @Autowired ClassroomRepository classroomRepository;
-    @Autowired UserRepository userRepository;
-    @Autowired PasswordEncoder passwordEncoder;
+    @Autowired
+    MockMvc mockMvc;
+    @Autowired
+    ClassroomRepository classroomRepository;
+    @Autowired
+    UserRepository userRepository;
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     @Test
     void registersNormalizedUsernameWithEncryptedPasswordAndDefaultRole() throws Exception {

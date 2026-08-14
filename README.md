@@ -1,7 +1,7 @@
 # Segundão System
 
 <p align="center">
-  <img src="img.png" width="220" alt="Logo da turma 2º Informática A">
+ <img width="1279" height="1230" alt="segundao" src="https://github.com/user-attachments/assets/ea2d7143-3b63-4e77-ba45-698f1a9f5318" />
 </p>
 
 <p align="center">
@@ -47,6 +47,7 @@ O sistema foi pensado para aproximar alunos e organização escolar, facilitando
   <img src="docs/screenshots/dashboard.png" width="31%" alt="Dashboard do Segundão System">
   <img src="docs/screenshots/activities.png" width="31%" alt="Tela de atividades do Segundão System">
   <img src="docs/screenshots/admin.png" width="31%" alt="Painel administrativo do Segundão System">
+  <img width="1916" height="890" alt="image" src="https://github.com/user-attachments/assets/b4bed61b-7dfd-453f-bf7d-1ee7155a1ee9" />
 </p>
 
 ## Tecnologias

@@ -41,9 +41,7 @@ As atividades pertencem à turma, mas a conclusão é individual para cada aluno
 
 Isso significa que um aluno pode marcar uma atividade como concluída sem alterar o status dela para os demais.
 
-O projeto foi desenvolvido inicialmente como uma **API REST em Spring Boot**.
-
-Um frontend separado será desenvolvido posteriormente em React para consumir essa API.
+O projeto começou como uma **API REST em Spring Boot** e agora possui uma primeira versão de frontend em React, no diretório `frontend/`, consumindo os contratos reais da API.
 
 ---
 
@@ -69,6 +67,12 @@ O **Centro Territorial de Educação Profissional Piemonte do Paraguaçu II** é
 * JWT
 * BCrypt
 * Maven
+* React
+* Vite
+* TypeScript
+* Axios
+* React Router
+* lucide-react
 
 ---
 
@@ -89,6 +93,7 @@ Opcionalmente:
 
 ```text id="9fq7gi"
 DDL_AUTO
+FRONTEND_ORIGIN
 ```
 
 Exemplo:
@@ -98,6 +103,7 @@ DB_URL=jdbc:mysql://localhost:3306/2a_system
 DB_USERNAME=seu_usuario
 DB_PASSWORD=sua_senha
 JWT_SECRET=uma_chave_com_pelo_menos_32_caracteres
+FRONTEND_ORIGIN=http://localhost:5173
 ```
 
 Nunca envie senhas, tokens ou segredos para o repositório.
@@ -125,6 +131,31 @@ Para executar os testes:
 ```bash id="fxh2be"
 ./mvnw clean test
 ```
+
+Para iniciar o frontend em outro terminal:
+
+```bash
+cd frontend
+cp .env.example .env
+npm install
+npm run dev
+```
+
+O frontend utiliza `VITE_API_URL` para localizar o backend. O valor padrão do arquivo `.env.example` é:
+
+```text
+VITE_API_URL=http://localhost:8080
+```
+
+Validações disponíveis no frontend:
+
+```bash
+cd frontend
+npm run lint
+npm run build
+```
+
+O backend permite, por padrão, a origem `http://localhost:5173`. Em outro ambiente, configure `FRONTEND_ORIGIN` sem utilizar wildcard.
 
 Em desenvolvimento, a aplicação cria automaticamente a turma inicial:
 
@@ -171,6 +202,8 @@ Authorization: Bearer <jwt>
 POST /api/auth/login
 GET  /api/auth/me
 ```
+
+Não existe cadastro público. O frontend oferece a tela `/login` e direciona contas com `mustChangePassword: true` para `/change-password` antes de liberar o restante do sistema.
 
 ---
 
@@ -433,6 +466,27 @@ O dashboard atualmente informa:
 * atividades ativas;
 * avisos ativos.
 
+O frontend também possui `/admin` para consultar o resumo, listar usuários, criar alunos com senha inicial, consultar detalhes e ativar ou desativar contas. A rota só é exibida para `ADMIN` e o backend continua responsável pela autorização.
+
+---
+
+## Frontend
+
+A primeira versão da interface está organizada em páginas autenticadas:
+
+* `/dashboard` — resumo com próxima aula, atividades, avisos e horário do dia;
+* `/activities` — filtros, criação, edição, exclusão e conclusão individual;
+* `/announcements` — mural com criação, edição, exclusão e avisos fixados;
+* `/schedule` — horário semanal da turma;
+* `/subjects` — disciplinas e consulta da próxima aula;
+* `/teachers` — professores e disciplinas relacionadas;
+* `/profile` — dados reais da conta autenticada;
+* `/admin` — administração inicial para usuários com role `ADMIN`.
+
+O JWT fica concentrado no cliente Axios e é enviado como `Authorization: Bearer <jwt>`. Não há refresh token nesta etapa. Ao receber `401`, a sessão é limpa e o usuário volta para o login; respostas `403` permanecem como acesso negado.
+
+O frontend usa a identidade visual preto, branco, cinza e amarelo de destaque, com sidebar responsiva para telas pequenas. A imagem `img.png` é utilizada discretamente no branding.
+
 ---
 
 ## Segurança
@@ -503,6 +557,9 @@ Já estão implementados:
 * administração básica;
 * testes automatizados;
 * integração com MySQL.
+* frontend React inicial integrado à API;
+* CORS configurável para o frontend local;
+* fluxo de primeiro acesso com troca obrigatória de senha na interface.
 
 ---
 
@@ -510,8 +567,7 @@ Já estão implementados:
 
 Planejado para próximas etapas:
 
-* frontend em React;
-* auditoria segura de acessos;
+* auditoria segura de acessos (`AccessLog`);
 * OpenAPI / Swagger;
 * migrações de banco;
 * Docker;
@@ -526,6 +582,4 @@ A integração com IA ainda não utiliza nenhuma API ou chave externa.
 
 ## Status
 
-Backend do MVP funcional e em evolução.
-
-O frontend será desenvolvido separadamente em React.
+Backend e frontend inicial do MVP funcionais e em evolução.

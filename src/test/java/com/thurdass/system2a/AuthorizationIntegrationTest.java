@@ -114,6 +114,10 @@ class AuthorizationIntegrationTest {
                         .content("{\"name\":\"Maria Souza\",\"email\":\"maria.souza@example.com\",\"subjectIds\":[]}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Maria Souza"));
+        mockMvc.perform(get("/api/teachers/" + teacher.getId() + "/subjects")
+                        .header("Authorization", bearer(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
 
         mockMvc.perform(post("/api/schedules")
                         .header("Authorization", bearer(admin))

@@ -10,6 +10,7 @@ import com.thurdass.system2a.service.NextClassService;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -72,14 +73,24 @@ public class SchoolController {
 
     @PutMapping("/teachers/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public TeacherView editTeacher(@PathVariable Long id, @Valid @RequestBody TeacherRequest r) {
-        var t = teachers.findById(id).orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
-        t.setName(r.name().trim());
-        t.setEmail(r.email());
-        return TeacherView.of(teachers.save(t));
+    @Transactional
+    public TeacherView editTeacher(@PathVariable Long id, @Valid @RequestBody TeacherRequest request) {
+        Teacher teacher = teachers.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
+
+        teacher.setName(request.name().trim());
+        teacher.setEmail(request.email());
+
+        if (request.subjectIds() != null) {
+            teacher.getSubjects().clear();
+            teacher.getSubjects().addAll(subjects.findAllById(request.subjectIds()));
+        }
+
+        return TeacherView.of(teachers.save(teacher));
     }
 
     @GetMapping("/teachers/{id}/subjects")
+    @Transactional(readOnly = true)
     public List<SubjectView> teacherSubjects(@PathVariable Long id) {
         return teachers.findById(id).orElseThrow(() -> new ResourceNotFoundException("Teacher not found")).getSubjects().stream().map(SubjectView::of).toList();
     }

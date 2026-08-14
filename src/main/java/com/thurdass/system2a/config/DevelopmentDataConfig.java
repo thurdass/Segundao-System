@@ -5,13 +5,17 @@ import com.thurdass.system2a.repository.ClassroomRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 @Configuration
 public class DevelopmentDataConfig {
     @Bean
+    @Order(1)
     CommandLineRunner seedClassroom(ClassroomRepository repo) {
         return args -> {
-            if (repo.count() == 0) repo.save(new Classroom("2A", "Informática", 2026, "Manhã"));
+            if (repo.count() == 0) {
+                repo.save(new Classroom("2A", "Informática", 2026, "Manhã"));
+            }
         };
     }
 }

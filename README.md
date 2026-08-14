@@ -94,6 +94,10 @@ Opcionalmente:
 ```text id="9fq7gi"
 DDL_AUTO
 FRONTEND_ORIGIN
+INITIAL_ADMIN_ENABLED
+INITIAL_ADMIN_USERNAME
+INITIAL_ADMIN_PASSWORD
+INITIAL_ADMIN_DISPLAY_NAME
 ```
 
 Exemplo:
@@ -107,6 +111,8 @@ FRONTEND_ORIGIN=http://localhost:5173
 ```
 
 Nunca envie senhas, tokens ou segredos para o repositório.
+
+O arquivo `.env.example` contém a lista de variáveis sem credenciais reais. Um arquivo `.env` local não é versionado.
 
 A aplicação utiliza:
 
@@ -204,6 +210,24 @@ GET  /api/auth/me
 ```
 
 Não existe cadastro público. O frontend oferece a tela `/login` e direciona contas com `mustChangePassword: true` para `/change-password` antes de liberar o restante do sistema.
+
+## Bootstrap do primeiro administrador
+
+O cadastro público está desativado. Para criar o primeiro administrador em um ambiente local, habilite explicitamente o bootstrap usando variáveis de ambiente no processo de execução:
+
+```bash
+export INITIAL_ADMIN_ENABLED=true
+export INITIAL_ADMIN_USERNAME=seu_usuario_admin
+export INITIAL_ADMIN_PASSWORD='sua_senha_inicial_local'
+export INITIAL_ADMIN_DISPLAY_NAME='Administrador inicial'
+./mvnw spring-boot:run
+```
+
+O bootstrap só cria uma conta quando ainda não existe nenhum usuário com role `ADMIN`. A turma inicial criada em desenvolvimento é associada automaticamente à conta. A senha é armazenada com BCrypt e `mustChangePassword` começa como `true`, exigindo a troca no primeiro acesso.
+
+Depois que o administrador inicial for criado, desabilite `INITIAL_ADMIN_ENABLED` nas próximas execuções. Se a configuração estiver habilitada quando já existir um administrador, nenhuma conta adicional será criada.
+
+As variáveis de bootstrap não possuem valores de credencial no repositório. Nunca registre ou compartilhe a senha, o hash BCrypt ou o JWT.
 
 ---
 

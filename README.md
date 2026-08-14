@@ -490,7 +490,29 @@ O dashboard atualmente informa:
 * atividades ativas;
 * avisos ativos.
 
-O frontend também possui `/admin` para consultar o resumo, listar usuários, criar alunos com senha inicial, consultar detalhes e ativar ou desativar contas. A rota só é exibida para `ADMIN` e o backend continua responsável pela autorização.
+O frontend também possui `/admin` para:
+
+* consultar o resumo administrativo;
+* criar alunos com senha inicial;
+* consultar detalhes e ativar ou desativar contas;
+* criar, editar, fixar e remover avisos;
+* cadastrar disciplinas da turma;
+* cadastrar e editar professores, incluindo as disciplinas relacionadas;
+* cadastrar e remover horários da grade.
+
+A rota só é exibida para `ADMIN` e o backend continua responsável pela autorização. A grade enviada como referência é cadastrada pelo administrador usando os formulários; o frontend não injeta dados fictícios automaticamente.
+
+Os contratos escolares disponíveis nesta versão são:
+
+```text
+POST /api/subjects
+POST /api/teachers
+PUT  /api/teachers/{id}
+POST /api/schedules
+DELETE /api/schedules/{id}
+```
+
+O backend ainda não oferece atualização ou remoção de disciplinas, nem edição de horários. Para substituir um horário, remova o registro atual e cadastre o novo.
 
 ---
 
@@ -543,6 +565,8 @@ A suíte cobre:
 * criação administrativa de usuários;
 * troca obrigatória de senha;
 * permissões `STUDENT` e `ADMIN`;
+* gerenciamento administrativo do catálogo escolar;
+* associação e edição de disciplinas dos professores;
 * atividades;
 * conclusão individual;
 * filtros;
@@ -597,7 +621,8 @@ Planejado para próximas etapas:
 * Docker;
 * CI/CD;
 * notificações;
-* melhorias no painel administrativo;
+* atualização e remoção de disciplinas;
+* edição de horários existentes;
 * chat com inteligência artificial.
 
 A integração com IA ainda não utiliza nenhuma API ou chave externa.

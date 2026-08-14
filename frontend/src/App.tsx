@@ -1,7 +1,8 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
+import { AppLayout } from './layouts/AppLayout'
 import { ChangePasswordPage } from './pages/ChangePasswordPage'
-import { InitialDashboardPage } from './pages/InitialDashboardPage'
+import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
 import { FirstAccessRoute, ProtectedRoute } from './routes/ProtectedRoute'
 
@@ -20,8 +21,10 @@ function App() {
         </Route>
 
         <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<HomeRedirect />} />
-          <Route path="/dashboard" element={<InitialDashboardPage />} />
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<HomeRedirect />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+          </Route>
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

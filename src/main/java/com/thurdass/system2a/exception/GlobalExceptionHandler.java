@@ -5,6 +5,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -21,6 +22,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> validation(Exception e, HttpServletRequest r) { return error(HttpStatus.BAD_REQUEST, "Invalid request data", r); }
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiError> denied(AccessDeniedException e, HttpServletRequest r) { return error(HttpStatus.FORBIDDEN, "Access denied", r); }
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiError> authentication(AuthenticationException e, HttpServletRequest r) { return error(HttpStatus.UNAUTHORIZED, "Invalid credentials", r); }
     private ResponseEntity<ApiError> error(HttpStatus s, String message, HttpServletRequest r) {
         return ResponseEntity.status(s).body(new ApiError(LocalDateTime.now(), s.value(), s.getReasonPhrase(), message, r.getRequestURI()));
     }

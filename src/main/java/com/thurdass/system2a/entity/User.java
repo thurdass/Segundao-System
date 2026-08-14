@@ -1,8 +1,21 @@
 package com.thurdass.system2a.entity;
 
 import com.thurdass.system2a.enums.Role;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,13 +45,17 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private boolean enabled = true;
     @Column(nullable = false)
+    private boolean mustChangePassword;
+    @Column(nullable = false)
     private LocalDateTime createdAt;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     private Classroom classroom;
 
     @PrePersist
     void prePersist() {
-        if (createdAt == null) createdAt = LocalDateTime.now();
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
     }
 
     public User(String username, String password, String displayName, Classroom classroom) {

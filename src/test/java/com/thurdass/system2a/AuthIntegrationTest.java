@@ -5,10 +5,11 @@ import com.thurdass.system2a.entity.User;
 import com.thurdass.system2a.enums.Role;
 import com.thurdass.system2a.repository.ClassroomRepository;
 import com.thurdass.system2a.repository.UserRepository;
+import com.thurdass.system2a.security.JwtService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -17,19 +18,23 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.blankOrNullString;
+import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 class AuthIntegrationTest {
     private static final String PASSWORD = "password123";
+    private static final String ADMIN_PASSWORD = "adminpass123";
     private static final Pattern TOKEN = Pattern.compile("\"token\":\"([^\"]+)\"");
 
     @Autowired
@@ -40,20 +45,25 @@ class AuthIntegrationTest {
     UserRepository userRepository;
     @Autowired
     PasswordEncoder passwordEncoder;
+    @Autowired
+    JwtService jwtService;
 
     @Test
-    void registersNormalizedUsernameWithEncryptedPasswordAndDefaultRole() throws Exception {
+    void administratorCreatesNormalizedStudentWithEncryptedInitialPassword() throws Exception {
+        Classroom classroom = classroom();
+        User admin = user("creation-admin", classroom, Role.ADMIN, ADMIN_PASSWORD);
         String username = unique("Arthur");
 
-        MvcResult result = mockMvc.perform(post("/api/auth/register")
+        MvcResult result = mockMvc.perform(post("/api/admin/users")
+                        .header("Authorization", bearer(admin))
                         .contentType(APPLICATION_JSON)
-                        .content(registerJson(username, "Arthur Silva", classroom().getId())))
+                        .content(adminUserJson(username, "Arthur Silva", null, classroom.getId())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token", not(blankOrNullString())))
-                .andExpect(jsonPath("$.user.username").value(username.toLowerCase()))
-                .andExpect(jsonPath("$.user.role").value("STUDENT"))
-                .andExpect(jsonPath("$.user.classroomId").value(classroom().getId()))
-                .andExpect(jsonPath("$.user.password").doesNotExist())
+                .andExpect(jsonPath("$.username").value(username.toLowerCase()))
+                .andExpect(jsonPath("$.role").value("STUDENT"))
+                .andExpect(jsonPath("$.classroomId").value(classroom.getId()))
+                .andExpect(jsonPath("$.mustChangePassword").value(true))
+                .andExpect(jsonPath("$.password").doesNotExist())
                 .andReturn();
 
         assertFalse(result.getResponse().getContentAsString().contains(PASSWORD));
@@ -62,36 +72,77 @@ class AuthIntegrationTest {
         assertTrue(passwordEncoder.matches(PASSWORD, saved.getPassword()));
         assertNotEquals(PASSWORD, saved.getPassword());
         assertEquals(Role.STUDENT, saved.getRole());
-        assertEquals(classroom().getId(), saved.getClassroom().getId());
+        assertTrue(saved.isMustChangePassword());
+        assertEquals(classroom.getId(), saved.getClassroom().getId());
     }
 
     @Test
-    void rejectsDuplicateUsernameAndInvalidRegistrationData() throws Exception {
+    void studentCannotCreateUserAndUnauthenticatedRequestIsRejected() throws Exception {
+        Classroom classroom = classroom();
+        User student = user("creation-student", classroom, Role.STUDENT, PASSWORD);
+
+        mockMvc.perform(post("/api/admin/users")
+                        .header("Authorization", bearer(student))
+                        .contentType(APPLICATION_JSON)
+                        .content(adminUserJson("student-created", "Student Created", "STUDENT", classroom.getId())))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/api/admin/users")
+                        .contentType(APPLICATION_JSON)
+                        .content(adminUserJson("anonymous-created", "Anonymous Created", "STUDENT", classroom.getId())))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void publicRegistrationEndpointIsNoLongerAvailable() throws Exception {
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(APPLICATION_JSON)
+                        .content(adminUserJson("public-user", "Public User", "STUDENT", classroom().getId())))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void rejectsDuplicateUsernameAndInvalidAdministrativeData() throws Exception {
+        Classroom classroom = classroom();
+        User admin = user("duplicate-admin", classroom, Role.ADMIN, ADMIN_PASSWORD);
         String username = unique("duplicate");
-        register(username);
 
-        mockMvc.perform(post("/api/auth/register")
+        createUser(admin, username, "First User", "STUDENT", classroom.getId());
+
+        mockMvc.perform(post("/api/admin/users")
+                        .header("Authorization", bearer(admin))
                         .contentType(APPLICATION_JSON)
-                        .content(registerJson(username.toUpperCase(), "Outra Pessoa", classroom().getId())))
+                        .content(adminUserJson(username.toUpperCase(), "Other User", "STUDENT", classroom.getId())))
                 .andExpect(status().isBadRequest());
 
-        mockMvc.perform(post("/api/auth/register")
+        mockMvc.perform(post("/api/admin/users")
+                        .header("Authorization", bearer(admin))
                         .contentType(APPLICATION_JSON)
-                        .content(registerJson(" ", "Pessoa", classroom().getId())))
+                        .content(adminUserJson(" ", "Invalid User", "STUDENT", classroom.getId())))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(post("/api/admin/users")
+                        .header("Authorization", bearer(admin))
+                        .contentType(APPLICATION_JSON)
+                        .content(adminUserJson("invalid-role", "Invalid Role", "MANAGER", classroom.getId())))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    void logsInWithValidCredentialsAndAcceptsUsernameCaseVariation() throws Exception {
-        String username = unique("caseuser");
-        register(username);
+    void administratorCreatedUserCanLogInAndResponseRequiresPasswordChange() throws Exception {
+        Classroom classroom = classroom();
+        User admin = user("login-admin", classroom, Role.ADMIN, ADMIN_PASSWORD);
+        String username = unique("initial-login");
+
+        createUser(admin, username, "Initial Login", "STUDENT", classroom.getId());
 
         MvcResult result = mockMvc.perform(post("/api/auth/login")
                         .contentType(APPLICATION_JSON)
                         .content(loginJson(username.toUpperCase(), PASSWORD)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token", not(blankOrNullString())))
-                .andExpect(jsonPath("$.user.username").value(username.toLowerCase()))
+                .andExpect(jsonPath("$.mustChangePassword").value(true))
+                .andExpect(jsonPath("$.user.mustChangePassword").value(true))
                 .andExpect(jsonPath("$.user.password").doesNotExist())
                 .andReturn();
 
@@ -100,8 +151,9 @@ class AuthIntegrationTest {
 
     @Test
     void rejectsWrongPasswordUnknownUserAndDisabledUser() throws Exception {
+        Classroom classroom = classroom();
         String username = unique("loginuser");
-        register(username);
+        User user = user(username, classroom, Role.STUDENT, PASSWORD);
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(APPLICATION_JSON)
@@ -113,23 +165,24 @@ class AuthIntegrationTest {
                         .content(loginJson(unique("unknown"), PASSWORD)))
                 .andExpect(status().isUnauthorized());
 
-        User disabled = new User(unique("disabled"), passwordEncoder.encode(PASSWORD), "Disabled", classroom());
-        disabled.setEnabled(false);
-        userRepository.save(disabled);
+        user.setEnabled(false);
+        userRepository.save(user);
         mockMvc.perform(post("/api/auth/login")
                         .contentType(APPLICATION_JSON)
-                        .content(loginJson(disabled.getUsername(), PASSWORD)))
+                        .content(loginJson(username, PASSWORD)))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void authenticatedUserCanReadOwnProfileOnlyWithoutPassword() throws Exception {
-        String username = unique("profile");
-        String token = token(register(username));
+        Classroom classroom = classroom();
+        User user = user(unique("profile"), classroom, Role.STUDENT, PASSWORD);
+        String token = bearer(user);
 
-        mockMvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + token))
+        mockMvc.perform(get("/api/auth/me").header("Authorization", token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value(username.toLowerCase()))
+                .andExpect(jsonPath("$.username").value(user.getUsername()))
+                .andExpect(jsonPath("$.mustChangePassword").value(false))
                 .andExpect(jsonPath("$.password").doesNotExist());
 
         mockMvc.perform(get("/api/auth/me"))
@@ -139,17 +192,29 @@ class AuthIntegrationTest {
                 .andExpect(status().isUnauthorized());
     }
 
-    private MvcResult register(String username) throws Exception {
-        return mockMvc.perform(post("/api/auth/register")
+    private MvcResult createUser(User admin, String username, String displayName,
+                                 String role, Long classroomId) throws Exception {
+        return mockMvc.perform(post("/api/admin/users")
+                        .header("Authorization", bearer(admin))
                         .contentType(APPLICATION_JSON)
-                        .content(registerJson(username, "Test User", classroom().getId())))
+                        .content(adminUserJson(username, displayName, role, classroomId)))
                 .andExpect(status().isOk())
                 .andReturn();
     }
 
+    private User user(String username, Classroom classroom, Role role, String password) {
+        User user = new User(username, passwordEncoder.encode(password), username, classroom);
+        user.setRole(role);
+        return userRepository.save(user);
+    }
+
+    private String bearer(User user) {
+        return "Bearer " + jwtService.generate(user);
+    }
+
     private String token(MvcResult result) throws Exception {
         Matcher matcher = TOKEN.matcher(result.getResponse().getContentAsString());
-        assertTrue(matcher.find(), "Registration/login response must contain a JWT");
+        assertTrue(matcher.find(), "Authentication response must contain a JWT");
         return matcher.group(1);
     }
 
@@ -161,8 +226,11 @@ class AuthIntegrationTest {
         return prefix + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
     }
 
-    private String registerJson(String username, String displayName, Long classroomId) {
-        return "{\"username\":\"" + username + "\",\"password\":\"" + PASSWORD + "\",\"displayName\":\"" + displayName + "\",\"classroomId\":" + classroomId + "}";
+    private String adminUserJson(String username, String displayName, String role, Long classroomId) {
+        String roleProperty = role == null ? "" : ",\"role\":\"" + role + "\"";
+        return "{\"username\":\"" + username + "\",\"password\":\"" + PASSWORD
+                + "\",\"displayName\":\"" + displayName + "\"" + roleProperty
+                + ",\"classroomId\":" + classroomId + "}";
     }
 
     private String loginJson(String username, String password) {

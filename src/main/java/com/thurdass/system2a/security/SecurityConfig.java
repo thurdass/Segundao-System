@@ -1,11 +1,13 @@
 package com.thurdass.system2a.security;
 
 import com.thurdass.system2a.repository.UserRepository;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.*;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -21,11 +23,26 @@ public class SecurityConfig {
 
     @Bean
     UserDetailsService userDetailsService(UserRepository repo) {
-        return username -> repo.findByUsernameIgnoreCase(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return username -> repo.findByUsernameIgnoreCase(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwt) throws Exception {
-        return http.csrf(c -> c.disable()).cors(c -> c.disable()).sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).exceptionHandling(e -> e.authenticationEntryPoint((request, response, exception) -> response.sendError(401))).authorizeHttpRequests(a -> a.requestMatchers("/api/auth/register", "/api/auth/login", "/error").permitAll().anyRequest().authenticated()).addFilterBefore(jwt, UsernamePasswordAuthenticationFilter.class).build();
+        return http
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(
+                        (request, response, authenticationException) -> response.sendError(401)
+                ))
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/api/auth/login", "/error")
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated()
+                )
+                .addFilterBefore(jwt, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 }

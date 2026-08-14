@@ -17,10 +17,31 @@ Em desenvolvimento, a aplicação cria uma turma inicial `2A / Informática / 20
 - `GET /api/schedules/classroom/{id}`; alterações de catálogo exigem `ADMIN`
 - `GET/POST /api/activities`, `POST/DELETE /api/activities/{id}/complete`; use `status=pending|completed`, `subjectId` e `dueBefore`
 - `GET/POST/PUT/DELETE /api/announcements`
-- `GET/PATCH /api/admin/users`, `GET /api/admin/dashboard`
+- `GET /api/subjects/{subjectId}/next-class` consulta a próxima ocorrência da disciplina da turma do aluno autenticado
+- `GET/PATCH /api/admin/users`, `GET /api/admin/users/{id}`, `GET /api/admin/dashboard`
 
-Envie o token como `Authorization: Bearer <jwt>`. Alunos só enxergam dados da própria turma; criadores editam/removem seus conteúdos e administradores podem gerenciar qualquer conteúdo. Conclusões de atividades são individuais.
+Envie o token como `Authorization: Bearer <jwt>`. Alunos só enxergam dados da própria turma; criadores editam/removem seus conteúdos e administradores podem gerenciar qualquer conteúdo. Conclusões de atividades são individuais. Ausência ou falha de autenticação retorna `401`; falta de permissão retorna `403`.
+
+Exemplo de consulta da próxima aula:
+
+```text
+GET /api/subjects/1/next-class
+Authorization: Bearer <jwt>
+```
+
+```json
+{
+  "subjectId": 1,
+  "subjectName": "Desenvolvimento Web",
+  "nextClassDate": "2026-08-17",
+  "dayOfWeek": "MONDAY",
+  "startTime": "09:10:00",
+  "endTime": "10:00:00"
+}
+```
+
+Os testes usam H2 em memória e cobrem autenticação, registro, login, JWT, atividades, conclusão individual, filtros, permissões STUDENT/ADMIN, horários e os endpoints de próxima aula e administração. Execute `./mvnw clean test` para reproduzi-los.
 
 ## Estado e próximos passos
 
-O backend MVP está implementado sem frontend. A integração de chat com IA, histórico, limites de uso e troca segura de provedor será uma etapa futura; nenhuma chave ou API de IA é usada no repositório. Também ficam para evolução a auditoria de acessos, migrações de banco e refinamento da gestão de contas administrativas.
+O backend MVP está implementado sem frontend. A integração de chat com IA, histórico, limites de uso e troca segura de provedor será uma etapa futura; nenhuma chave ou API de IA é usada no repositório. Também ficam para evolução a auditoria segura de acessos, migrações de banco, documentação OpenAPI e preparação formal do contrato para o frontend. `AccessLog` ainda não está implementado.

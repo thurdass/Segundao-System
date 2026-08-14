@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: 2a-system-test
   datasource:
     url: jdbc:h2:mem:system2a;MODE=MySQL;DB_CLOSE_DELAY=-1
     username: sa
@@ -7,6 +9,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+    open-in-view: false
   sql:
     init:
       mode: never
+app:
+  jwt:
+    secret: test-secret-that-is-long-enough-for-hmac-jwt-123456
+    expiration-hours: 24

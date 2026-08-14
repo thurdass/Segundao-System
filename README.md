@@ -8,11 +8,12 @@ Java 21, Spring Boot 4, Spring Web MVC, Spring Data JPA, MySQL, Bean Validation,
 
 Configure `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET` (ao menos 32 caracteres) e opcionalmente `DDL_AUTO`. O padrão usa MySQL em `2a_system` e timezone `America/Sao_Paulo`. Execute com `./mvnw spring-boot:run` ou `./mvnw test`.
 
-Em desenvolvimento, a aplicação cria uma turma inicial `2A / Informática / 2026 / Manhã`. O cadastro recebe o `classroomId` dessa turma. A promoção do primeiro usuário para administrador deve ser feita de forma controlada no banco (`role = 'ADMIN'`); não há credencial administrativa padrão.
+Em desenvolvimento, a aplicação cria uma turma inicial `2A / Informática / 2026 / Manhã`. A promoção do primeiro usuário para administrador deve ser feita de forma controlada no banco (`role = 'ADMIN'`); não há credencial administrativa padrão.
 
 ## Endpoints principais
 
-- `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`
+- `POST /api/auth/login`, `GET /api/auth/me`, `PATCH /api/auth/password`
+- `POST /api/admin/users`, `GET/PATCH /api/admin/users`, `GET /api/admin/users/{id}`
 - `GET /api/subjects?classroomId=1`, `GET /api/teachers`, `GET /api/teachers/{id}/subjects`
 - `GET /api/schedules/classroom/{id}`; alterações de catálogo exigem `ADMIN`
 - `GET/POST /api/activities`, `POST/DELETE /api/activities/{id}/complete`; use `status=pending|completed`, `subjectId` e `dueBefore`
@@ -21,6 +22,43 @@ Em desenvolvimento, a aplicação cria uma turma inicial `2A / Informática / 20
 - `GET/PATCH /api/admin/users`, `GET /api/admin/users/{id}`, `GET /api/admin/dashboard`
 
 Envie o token como `Authorization: Bearer <jwt>`. Alunos só enxergam dados da própria turma; criadores editam/removem seus conteúdos e administradores podem gerenciar qualquer conteúdo. Conclusões de atividades são individuais. Ausência ou falha de autenticação retorna `401`; falta de permissão retorna `403`.
+
+## Contas gerenciadas pelo administrador
+
+Não existe cadastro público. Apenas um usuário com role `ADMIN` pode criar contas de alunos:
+
+```text
+POST /api/admin/users
+```
+
+Exemplo de requisição sem credenciais reais:
+
+```json
+{
+  "username": "arthur",
+  "password": "senhaInicialFicticia",
+  "displayName": "Arthur Almeida",
+  "role": "STUDENT",
+  "classroomId": 1
+}
+```
+
+O username é normalizado para lowercase, precisa ser único e a senha inicial é armazenada com BCrypt. A resposta nunca contém a senha nem o hash. O endpoint exige `ADMIN`; usuários não autenticados ou estudantes não podem criar contas.
+
+Contas criadas pelo administrador começam com `mustChangePassword: true`. O aluno consegue fazer o login inicial, mas deve trocar a senha antes de acessar atividades, avisos, horários e demais recursos normais:
+
+```text
+PATCH /api/auth/password
+```
+
+```json
+{
+  "currentPassword": "senhaInicialFicticia",
+  "newPassword": "novaSenhaFicticia"
+}
+```
+
+Enquanto a troca for obrigatória, apenas `GET /api/auth/me` e `PATCH /api/auth/password` ficam disponíveis, além do login. Depois da troca, `mustChangePassword` passa a `false` e o acesso normal é liberado. O login e o `/api/auth/me` informam esse estado sem expor qualquer senha.
 
 Exemplo de consulta da próxima aula:
 
@@ -40,7 +78,7 @@ Authorization: Bearer <jwt>
 }
 ```
 
-Os testes usam H2 em memória e cobrem autenticação, registro, login, JWT, atividades, conclusão individual, filtros, permissões STUDENT/ADMIN, horários e os endpoints de próxima aula e administração. Execute `./mvnw clean test` para reproduzi-los.
+Os testes usam H2 em memória e cobrem autenticação, criação administrativa de usuários, login inicial, troca obrigatória de senha, JWT, atividades, conclusão individual, filtros, permissões STUDENT/ADMIN, horários e os endpoints de próxima aula e administração. Execute `./mvnw clean test` para reproduzi-los.
 
 ## Estado e próximos passos
 

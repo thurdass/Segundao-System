@@ -12,6 +12,8 @@ import {
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { adminApi } from '../api/admin'
 import { getApiErrorMessage } from '../api/client'
+import { AdminAnnouncementsSection } from '../components/AdminAnnouncementsSection'
+import { AdminSchoolSection } from '../components/AdminSchoolSection'
 import { useAuth } from '../hooks/useAuth'
 import type { AdminDashboard, AdminUserRequest, User } from '../types/api'
 import { formatDateTime } from '../utils/date'
@@ -418,6 +420,13 @@ export function AdminPage() {
                 <span>Senhas, hashes e tokens não fazem parte desta consulta.</span>
               </div>
             </section>
+          )}
+
+          {user?.classroomId && (
+            <>
+              <AdminAnnouncementsSection />
+              <AdminSchoolSection classroomId={user.classroomId} />
+            </>
           )}
         </>
       )}

@@ -2135,6 +2135,361 @@
   }
 }
 
+.admin-management-section {
+  display: grid;
+  gap: 16px;
+  margin-top: 30px;
+}
+
+.admin-management-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.admin-management-heading h3 {
+  margin: 7px 0 0;
+  color: #171717;
+  font-size: 1.22rem;
+  letter-spacing: -0.04em;
+}
+
+.admin-management-heading p:not(.eyebrow) {
+  max-width: 620px;
+  margin: 7px 0 0;
+  color: #85857e;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.admin-management-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.admin-inline-form {
+  margin-top: 0;
+}
+
+.form-help {
+  margin: 0;
+  color: #85857e;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.subject-checkbox-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.subject-checkbox-fieldset legend {
+  margin-bottom: 10px;
+  color: #494944;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.subject-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e5e5df;
+  border-radius: 11px;
+  background: #fafaf7;
+}
+
+.admin-announcement-list,
+.admin-catalog-list,
+.admin-schedule-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-announcement-row {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #e5e5df;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.admin-announcement-row.is-pinned {
+  border-color: #ecd66c;
+  background: #fffef4;
+}
+
+.admin-announcement-icon,
+.admin-catalog-icon {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #171717;
+  background: #f3f0dc;
+}
+
+.admin-announcement-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+
+.admin-announcement-row.is-pinned .admin-announcement-icon {
+  background: #facc15;
+}
+
+.admin-announcement-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-announcement-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-announcement-title-row strong {
+  color: #383838;
+  font-size: 0.84rem;
+}
+
+.admin-announcement-main p {
+  margin: 6px 0 0;
+  color: #73736d;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.admin-announcement-main small {
+  display: block;
+  margin-top: 8px;
+  color: #92928b;
+  font-size: 0.67rem;
+}
+
+.admin-announcement-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+}
+
+.admin-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.admin-catalog-card {
+  display: grid;
+  min-width: 0;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #e5e5df;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgb(20 20 20 / 3%);
+}
+
+.admin-catalog-card-wide {
+  grid-column: 1 / -1;
+}
+
+.admin-catalog-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-catalog-card-heading > div {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+}
+
+.admin-catalog-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+}
+
+.admin-catalog-card-heading h4 {
+  margin: 0;
+  color: #383838;
+  font-size: 0.9rem;
+}
+
+.admin-catalog-card-heading > span {
+  color: #92928b;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.admin-catalog-list {
+  max-height: 270px;
+  overflow: auto;
+}
+
+.admin-catalog-list li,
+.admin-schedule-list li {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid #eeeeea;
+}
+
+.admin-catalog-list li:first-child,
+.admin-schedule-list li:first-child {
+  border-top: 0;
+}
+
+.admin-catalog-list li > div,
+.admin-schedule-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-catalog-list strong,
+.admin-catalog-list span,
+.admin-schedule-main strong,
+.admin-schedule-main span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-catalog-list strong,
+.admin-schedule-main strong {
+  color: #383838;
+  font-size: 0.78rem;
+}
+
+.admin-catalog-list span,
+.admin-schedule-main span {
+  margin-top: 4px;
+  color: #92928b;
+  font-size: 0.68rem;
+}
+
+.admin-catalog-list small {
+  flex: 0 0 auto;
+  color: #b0b0a9;
+  font-size: 0.66rem;
+}
+
+.admin-catalog-empty {
+  margin: 0;
+  color: #92928b;
+  font-size: 0.76rem;
+}
+
+.catalog-add-button {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 34px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  border: 1px dashed #d6d6ce;
+  border-radius: 9px;
+  color: #686861;
+  background: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.catalog-add-button:hover:not(:disabled) {
+  border-color: #c8aa17;
+  color: #765d00;
+  background: #fffbe6;
+}
+
+.catalog-add-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.admin-schedule-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 18px;
+}
+
+.admin-schedule-time {
+  display: grid;
+  width: 58px;
+  flex: 0 0 auto;
+  gap: 3px;
+}
+
+.admin-schedule-time strong {
+  color: #383838;
+  font-size: 0.76rem;
+}
+
+.admin-schedule-time span {
+  color: #92928b;
+  font-size: 0.67rem;
+}
+
+@media (max-width: 900px) {
+  .admin-catalog-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-catalog-card-wide {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-management-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-management-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .admin-management-actions button {
+    flex: 1;
+  }
+
+  .subject-checkbox-grid,
+  .admin-schedule-list {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-announcement-row {
+    flex-wrap: wrap;
+  }
+
+  .admin-announcement-actions {
+    width: 100%;
+    padding-left: 48px;
+  }
+}
+
 @media (max-width: 760px) {
   .app-sidebar {
     width: min(286px, 88vw);

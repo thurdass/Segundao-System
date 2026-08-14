@@ -17,3 +17,8 @@ app:
   jwt:
     secret: test-secret-that-is-long-enough-for-hmac-jwt-123456
     expiration-hours: 24
+
+logging:
+  level:
+    root: WARN
+    com.thurdass.system2a: WARN

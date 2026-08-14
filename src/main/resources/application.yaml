@@ -17,6 +17,11 @@ server:
   error:
     include-message: never
 
+logging:
+  level:
+    root: WARN
+    com.thurdass.system2a: WARN
+
 app:
   timezone: America/Sao_Paulo
   jwt:

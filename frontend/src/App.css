@@ -1862,6 +1862,259 @@
   }
 }
 
+.admin-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.admin-stat-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 12px;
+  align-items: center;
+  padding: 19px;
+  border: 1px solid #e5e5df;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgb(20 20 20 / 3%);
+}
+
+.admin-stat-icon {
+  display: inline-grid;
+  width: 38px;
+  height: 38px;
+  grid-row: span 3;
+  place-items: center;
+  border-radius: 11px;
+  color: #171717;
+  background: #facc15;
+}
+
+.admin-stat-card > span {
+  color: #73736d;
+  font-size: 0.73rem;
+  font-weight: 800;
+}
+
+.admin-stat-card strong {
+  margin-top: 4px;
+  color: #171717;
+  font-size: 1.7rem;
+  line-height: 1;
+  letter-spacing: -0.06em;
+}
+
+.admin-stat-card small {
+  margin-top: 4px;
+  color: #92928b;
+  font-size: 0.68rem;
+}
+
+.admin-onboarding-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: -7px 0 20px;
+  padding: 12px 14px;
+  border-left: 3px solid #facc15;
+  color: #765d00;
+  background: #fffbe6;
+  font-size: 0.77rem;
+  line-height: 1.4;
+}
+
+.inline-success {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 13px 15px;
+  border: 1px solid #b9dfc5;
+  border-radius: 12px;
+  color: #23623e;
+  background: #f4fff7;
+  font-size: 0.82rem;
+}
+
+.admin-users-section {
+  display: grid;
+  gap: 0;
+}
+
+.admin-users-section > .section-heading {
+  margin-bottom: 0;
+  padding: 0 2px 14px;
+}
+
+.admin-users-section h3 {
+  margin: 7px 0 0;
+  color: #171717;
+  font-size: 1.18rem;
+  letter-spacing: -0.04em;
+}
+
+.admin-count-label {
+  color: #92928b;
+  font-size: 0.74rem;
+}
+
+.admin-user-list {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid #e5e5df;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgb(20 20 20 / 3%);
+}
+
+.admin-user-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-top: 1px solid #eeeeea;
+}
+
+.admin-user-row:first-child {
+  border-top: 0;
+}
+
+.admin-user-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-user-main strong,
+.admin-user-main span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-user-main strong {
+  color: #383838;
+  font-size: 0.82rem;
+}
+
+.admin-user-main span {
+  margin-top: 4px;
+  color: #92928b;
+  font-size: 0.7rem;
+}
+
+.admin-user-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.admin-user-actions .school-card-action {
+  margin-top: 0;
+}
+
+.admin-status-button {
+  min-height: 38px;
+  padding: 0 11px;
+  border: 1px solid #deded8;
+  border-radius: 10px;
+  color: #777772;
+  background: #fff;
+  font-size: 0.71rem;
+  font-weight: 800;
+}
+
+.admin-status-button:hover:not(:disabled) {
+  border-color: #c8aa17;
+  color: #765d00;
+  background: #fffbe6;
+}
+
+.admin-user-details {
+  margin-top: 2px;
+}
+
+.admin-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 17px 22px;
+  margin: 0;
+}
+
+.admin-detail-grid div {
+  min-width: 0;
+}
+
+.admin-detail-grid dt {
+  color: #92928b;
+  font-size: 0.69rem;
+  font-weight: 800;
+}
+
+.admin-detail-grid dd {
+  margin: 6px 0 0;
+  overflow: hidden;
+  color: #383838;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-detail-safe-note {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 22px;
+  color: #8a8a84;
+  font-size: 0.72rem;
+}
+
+@media (max-width: 900px) {
+  .admin-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-stat-card {
+    grid-template-columns: auto 1fr;
+  }
+
+  .admin-detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-user-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .admin-user-main {
+    max-width: calc(100% - 58px);
+  }
+
+  .admin-user-row > .status-badge {
+    margin-left: 58px;
+  }
+
+  .admin-user-actions {
+    width: 100%;
+    margin-left: 58px;
+  }
+
+  .admin-user-actions > button {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .admin-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 1100px) {
   .app-sidebar {
     width: 228px;

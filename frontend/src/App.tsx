@@ -3,6 +3,7 @@ import './App.css'
 import { AppLayout } from './layouts/AppLayout'
 import { ActivitiesPage } from './pages/ActivitiesPage'
 import { AnnouncementsPage } from './pages/AnnouncementsPage'
+import { AdminPage } from './pages/AdminPage'
 import { ChangePasswordPage } from './pages/ChangePasswordPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
@@ -10,6 +11,7 @@ import { ProfilePage } from './pages/ProfilePage'
 import { SchedulePage } from './pages/SchedulePage'
 import { SubjectsPage } from './pages/SubjectsPage'
 import { TeachersPage } from './pages/TeachersPage'
+import { AdminRoute } from './routes/AdminRoute'
 import { FirstAccessRoute, ProtectedRoute } from './routes/ProtectedRoute'
 
 function HomeRedirect() {
@@ -36,6 +38,9 @@ function App() {
             <Route path="/subjects" element={<SubjectsPage />} />
             <Route path="/teachers" element={<TeachersPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<AdminPage />} />
+            </Route>
           </Route>
         </Route>
 

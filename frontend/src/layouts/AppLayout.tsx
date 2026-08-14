@@ -57,7 +57,11 @@ export function AppLayout() {
 
   const pageTitle = location.pathname === '/dashboard'
     ? 'Início'
-    : navigationItems.find((item) => location.pathname.startsWith(item.path))?.label ?? 'Segundão System'
+    : location.pathname === '/profile'
+      ? 'Perfil'
+      : location.pathname.startsWith('/admin')
+        ? 'Administração'
+        : navigationItems.find((item) => location.pathname.startsWith(item.path))?.label ?? 'Segundão System'
 
   return (
     <div className="app-shell">

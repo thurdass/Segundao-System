@@ -6,6 +6,10 @@ import { AnnouncementsPage } from './pages/AnnouncementsPage'
 import { ChangePasswordPage } from './pages/ChangePasswordPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
+import { ProfilePage } from './pages/ProfilePage'
+import { SchedulePage } from './pages/SchedulePage'
+import { SubjectsPage } from './pages/SubjectsPage'
+import { TeachersPage } from './pages/TeachersPage'
 import { FirstAccessRoute, ProtectedRoute } from './routes/ProtectedRoute'
 
 function HomeRedirect() {
@@ -28,6 +32,10 @@ function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/activities" element={<ActivitiesPage />} />
             <Route path="/announcements" element={<AnnouncementsPage />} />
+            <Route path="/schedule" element={<SchedulePage />} />
+            <Route path="/subjects" element={<SubjectsPage />} />
+            <Route path="/teachers" element={<TeachersPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Route>
 

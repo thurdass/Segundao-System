@@ -1,6 +1,6 @@
 import type { DayOfWeek, Schedule, Subject } from '../types/api'
 
-const dayOrder: DayOfWeek[] = [
+export const dayOrder: DayOfWeek[] = [
   'MONDAY',
   'TUESDAY',
   'WEDNESDAY',

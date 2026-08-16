@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.*;
 
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
-    List<Activity> findByClassroomIdAndActiveTrueOrderByDueDateAsc(Long id);
+    List<Activity> findByClassroomIdAndActiveTrueOrderByDueDateAsc(Long classroomId);
 
     long countByActiveTrue();
 }

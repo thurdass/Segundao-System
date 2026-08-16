@@ -10,21 +10,34 @@ public final class SchoolResponses {
     }
 
     public record SubjectView(Long id, String name, String shortName, Long classroomId) {
-        public static SubjectView of(Subject x) {
-            return new SubjectView(x.getId(), x.getName(), x.getShortName(), x.getClassroom().getId());
+        public static SubjectView of(Subject subject) {
+            return new SubjectView(
+                    subject.getId(),
+                    subject.getName(),
+                    subject.getShortName(),
+                    subject.getClassroom().getId()
+            );
         }
     }
 
     public record TeacherView(Long id, String name, String email, boolean active) {
-        public static TeacherView of(Teacher x) {
-            return new TeacherView(x.getId(), x.getName(), x.getEmail(), x.isActive());
+        public static TeacherView of(Teacher teacher) {
+            return new TeacherView(teacher.getId(), teacher.getName(), teacher.getEmail(), teacher.isActive());
         }
     }
 
     public record ScheduleView(Long id, Long classroomId, Long subjectId, Long teacherId, DayOfWeek dayOfWeek,
                                LocalTime startTime, LocalTime endTime) {
-        public static ScheduleView of(ClassSchedule x) {
-            return new ScheduleView(x.getId(), x.getClassroom().getId(), x.getSubject().getId(), x.getTeacher() == null ? null : x.getTeacher().getId(), x.getDayOfWeek(), x.getStartTime(), x.getEndTime());
+        public static ScheduleView of(ClassSchedule schedule) {
+            return new ScheduleView(
+                    schedule.getId(),
+                    schedule.getClassroom().getId(),
+                    schedule.getSubject().getId(),
+                    schedule.getTeacher() == null ? null : schedule.getTeacher().getId(),
+                    schedule.getDayOfWeek(),
+                    schedule.getStartTime(),
+                    schedule.getEndTime()
+            );
         }
     }
 }

@@ -16,24 +16,25 @@ public class MustChangePasswordAuthorizationManager
 
     @Override
     public AuthorizationDecision authorize(
-            Supplier<? extends Authentication> authentication,
-            RequestAuthorizationContext context
+            Supplier<? extends Authentication> authenticationSupplier,
+            RequestAuthorizationContext authorizationContext
     ) {
-        Authentication currentAuthentication = authentication.get();
+        Authentication currentAuthentication = authenticationSupplier.get();
         if (currentAuthentication == null
-                || !(currentAuthentication.getPrincipal() instanceof User user)) {
+                || !(currentAuthentication.getPrincipal() instanceof User authenticatedUser)) {
             return new AuthorizationDecision(false);
         }
 
-        if (!user.isMustChangePassword()) {
+        if (!authenticatedUser.isMustChangePassword()) {
             return new AuthorizationDecision(true);
         }
 
-        HttpServletRequest request = context.getRequest();
-        String requestPath = request.getRequestURI().substring(request.getContextPath().length());
+        HttpServletRequest httpServletRequest = authorizationContext.getRequest();
+        String requestPath = httpServletRequest.getRequestURI()
+                .substring(httpServletRequest.getContextPath().length());
         boolean allowed = requestPath.equals("/api/auth/me")
                 || (requestPath.equals("/api/auth/password")
-                && request.getMethod().equalsIgnoreCase("PATCH"));
+                && httpServletRequest.getMethod().equalsIgnoreCase("PATCH"));
         return new AuthorizationDecision(allowed);
     }
 }

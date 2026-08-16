@@ -28,13 +28,13 @@ public class Announcement {
     boolean active = true;
 
     @PrePersist
-    void c() {
+    void initializeTimestamps() {
         createdAt = LocalDateTime.now();
         updatedAt = createdAt;
     }
 
     @PreUpdate
-    void u() {
+    void updateTimestamp() {
         updatedAt = LocalDateTime.now();
     }
 }

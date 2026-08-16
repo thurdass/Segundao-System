@@ -18,25 +18,27 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    private final AuthService auth;
+    private final AuthService authService;
 
-    public AuthController(AuthService auth) {
-        this.auth = auth;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@Valid @RequestBody LoginRequest request) {
-        return auth.login(request);
+    public AuthResponse login(@Valid @RequestBody LoginRequest loginRequest) {
+        return authService.login(loginRequest);
     }
 
     @GetMapping("/me")
-    public UserResponse me(@AuthenticationPrincipal User user) {
-        return UserResponse.from(user);
+    public UserResponse me(@AuthenticationPrincipal User authenticatedUser) {
+        return UserResponse.from(authenticatedUser);
     }
 
     @PatchMapping("/password")
-    public UserResponse changePassword(@Valid @RequestBody PasswordChangeRequest request,
-                                       @AuthenticationPrincipal User user) {
-        return auth.changePassword(user, request);
+    public UserResponse changePassword(
+            @Valid @RequestBody PasswordChangeRequest passwordChangeRequest,
+            @AuthenticationPrincipal User authenticatedUser
+    ) {
+        return authService.changePassword(authenticatedUser, passwordChangeRequest);
     }
 }

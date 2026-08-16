@@ -8,7 +8,7 @@ import {
   Pencil,
   Plus,
   Trash2,
-  X,
+  X as CloseIcon,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { activitiesApi, type ActivityQuery } from '../api/activities'
@@ -86,7 +86,7 @@ function ActivityForm({
           </h3>
         </div>
         <button className="icon-button" type="button" aria-label="Fechar formulário" onClick={onCancel}>
-          <X size={18} aria-hidden="true" />
+          <CloseIcon size={18} aria-hidden="true" />
         </button>
       </div>
 

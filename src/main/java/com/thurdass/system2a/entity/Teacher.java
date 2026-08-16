@@ -23,8 +23,8 @@ public class Teacher {
     @JoinTable(name = "teacher_subject", joinColumns = @JoinColumn(name = "teacher_id"), inverseJoinColumns = @JoinColumn(name = "subject_id"))
     Set<Subject> subjects = new HashSet<>();
 
-    public Teacher(String n, String e) {
-        name = n;
-        email = e;
+    public Teacher(String teacherName, String teacherEmail) {
+        name = teacherName;
+        email = teacherEmail;
     }
 }

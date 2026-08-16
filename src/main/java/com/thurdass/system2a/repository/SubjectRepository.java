@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.*;
 
 public interface SubjectRepository extends JpaRepository<Subject, Long> {
-    List<Subject> findByClassroomIdAndActiveTrue(Long id);
+    List<Subject> findByClassroomIdAndActiveTrue(Long classroomId);
 }

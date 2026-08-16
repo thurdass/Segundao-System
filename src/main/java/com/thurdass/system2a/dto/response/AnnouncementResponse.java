@@ -6,7 +6,14 @@ import java.time.*;
 
 public record AnnouncementResponse(Long id, String title, String content, LocalDateTime createdAt, String createdBy,
                                    boolean pinned) {
-    public static AnnouncementResponse of(Announcement a) {
-        return new AnnouncementResponse(a.getId(), a.getTitle(), a.getContent(), a.getCreatedAt(), a.getCreatedBy().getUsername(), a.isPinned());
+    public static AnnouncementResponse of(Announcement announcement) {
+        return new AnnouncementResponse(
+                announcement.getId(),
+                announcement.getTitle(),
+                announcement.getContent(),
+                announcement.getCreatedAt(),
+                announcement.getCreatedBy().getUsername(),
+                announcement.isPinned()
+        );
     }
 }

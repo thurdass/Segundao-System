@@ -7,7 +7,7 @@ import {
   Plus,
   UserRound,
   UsersRound,
-  X,
+  X as CloseIcon,
 } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { adminApi } from '../api/admin'
@@ -67,7 +67,7 @@ function UserForm({ form, isSubmitting, onCancel, onChange, onSubmit }: {
           <h3 id="admin-user-form-title">Criar usuário para a turma</h3>
         </div>
         <button className="icon-button" type="button" aria-label="Fechar formulário" onClick={onCancel}>
-          <X size={18} aria-hidden="true" />
+          <CloseIcon size={18} aria-hidden="true" />
         </button>
       </div>
       <div className="admin-onboarding-note">
@@ -404,7 +404,7 @@ export function AdminPage() {
                   <h3 id="admin-user-details-title">Detalhes de {selectedUser.displayName}</h3>
                 </div>
                 <button className="icon-button" type="button" aria-label="Fechar detalhes" onClick={() => setSelectedUser(null)}>
-                  <X size={18} aria-hidden="true" />
+                  <CloseIcon size={18} aria-hidden="true" />
                 </button>
               </div>
               <dl className="admin-detail-grid">

@@ -15,57 +15,87 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/announcements")
 public class AnnouncementController {
-    final AnnouncementRepository repo;
+    final AnnouncementRepository announcementRepository;
 
-    public AnnouncementController(AnnouncementRepository r) {
-        repo = r;
+    public AnnouncementController(AnnouncementRepository announcementRepository) {
+        this.announcementRepository = announcementRepository;
     }
 
     @GetMapping
-    public List<AnnouncementResponse> list(@AuthenticationPrincipal User u) {
-        return repo.findByClassroomIdAndActiveTrueOrderByPinnedDescCreatedAtDesc(u.getClassroom().getId()).stream().map(AnnouncementResponse::of).toList();
+    public List<AnnouncementResponse> list(@AuthenticationPrincipal User authenticatedUser) {
+        return announcementRepository
+                .findByClassroomIdAndActiveTrueOrderByPinnedDescCreatedAtDesc(
+                        authenticatedUser.getClassroom().getId()
+                )
+                .stream()
+                .map(AnnouncementResponse::of)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public AnnouncementResponse get(@PathVariable Long id, @AuthenticationPrincipal User u) {
-        var a = find(id);
-        if (!a.getClassroom().getId().equals(u.getClassroom().getId()))
+    public AnnouncementResponse get(
+            @PathVariable("id") Long announcementId,
+            @AuthenticationPrincipal User authenticatedUser
+    ) {
+        var announcement = find(announcementId);
+        if (!announcement.getClassroom().getId().equals(authenticatedUser.getClassroom().getId())) {
             throw new ResourceNotFoundException("Announcement not found");
-        return AnnouncementResponse.of(a);
+        }
+        return AnnouncementResponse.of(announcement);
     }
 
     @PostMapping
-    public AnnouncementResponse add(@Valid @RequestBody AnnouncementRequest r, @AuthenticationPrincipal User u) {
-        var a = new Announcement();
-        a.setTitle(r.title().trim());
-        a.setContent(r.content().trim());
-        a.setCreatedBy(u);
-        a.setClassroom(u.getClassroom());
-        a.setPinned(r.pinned() && u.getRole().name().equals("ADMIN"));
-        return AnnouncementResponse.of(repo.save(a));
+    public AnnouncementResponse add(
+            @Valid @RequestBody AnnouncementRequest announcementRequest,
+            @AuthenticationPrincipal User authenticatedUser
+    ) {
+        var announcement = new Announcement();
+        announcement.setTitle(announcementRequest.title().trim());
+        announcement.setContent(announcementRequest.content().trim());
+        announcement.setCreatedBy(authenticatedUser);
+        announcement.setClassroom(authenticatedUser.getClassroom());
+        announcement.setPinned(
+                announcementRequest.pinned()
+                        && authenticatedUser.getRole().name().equals("ADMIN")
+        );
+        return AnnouncementResponse.of(announcementRepository.save(announcement));
     }
 
     @PutMapping("/{id}")
-    public AnnouncementResponse edit(@PathVariable Long id, @Valid @RequestBody AnnouncementRequest r, @AuthenticationPrincipal User u) {
-        var a = find(id);
-        if (!a.getCreatedBy().getId().equals(u.getId()) && !u.getRole().name().equals("ADMIN"))
+    public AnnouncementResponse edit(
+            @PathVariable("id") Long announcementId,
+            @Valid @RequestBody AnnouncementRequest announcementRequest,
+            @AuthenticationPrincipal User authenticatedUser
+    ) {
+        var announcement = find(announcementId);
+        if (!announcement.getCreatedBy().getId().equals(authenticatedUser.getId())
+                && !authenticatedUser.getRole().name().equals("ADMIN")) {
             throw new AccessDeniedException("Only creator or admin can edit");
-        a.setTitle(r.title().trim());
-        a.setContent(r.content().trim());
-        if (u.getRole().name().equals("ADMIN")) a.setPinned(r.pinned());
-        return AnnouncementResponse.of(repo.save(a));
+        }
+        announcement.setTitle(announcementRequest.title().trim());
+        announcement.setContent(announcementRequest.content().trim());
+        if (authenticatedUser.getRole().name().equals("ADMIN")) {
+            announcement.setPinned(announcementRequest.pinned());
+        }
+        return AnnouncementResponse.of(announcementRepository.save(announcement));
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id, @AuthenticationPrincipal User u) {
-        var a = find(id);
-        if (!a.getCreatedBy().getId().equals(u.getId()) && !u.getRole().name().equals("ADMIN"))
+    public void delete(
+            @PathVariable("id") Long announcementId,
+            @AuthenticationPrincipal User authenticatedUser
+    ) {
+        var announcement = find(announcementId);
+        if (!announcement.getCreatedBy().getId().equals(authenticatedUser.getId())
+                && !authenticatedUser.getRole().name().equals("ADMIN")) {
             throw new AccessDeniedException("Only creator or admin can delete");
-        a.setActive(false);
-        repo.save(a);
+        }
+        announcement.setActive(false);
+        announcementRepository.save(announcement);
     }
 
-    private Announcement find(Long id) {
-        return repo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Announcement not found"));
+    private Announcement find(Long announcementId) {
+        return announcementRepository.findById(announcementId)
+                .orElseThrow(() -> new ResourceNotFoundException("Announcement not found"));
     }
 }

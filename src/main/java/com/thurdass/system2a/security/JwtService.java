@@ -13,28 +13,44 @@ import java.util.Date;
 
 @Service
 public class JwtService {
-    private final SecretKey key;
+    private final SecretKey secretKey;
     private final long expirationMillis;
 
-    public JwtService(@Value("${app.jwt.secret}") String secret, @Value("${app.jwt.expiration-hours:24}") long hours) {
-        if (secret.length() < 32) throw new IllegalArgumentException("JWT secret must have at least 32 characters");
-        key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        expirationMillis = hours * 3_600_000L;
+    public JwtService(
+            @Value("${app.jwt.secret}") String secret,
+            @Value("${app.jwt.expiration-hours:24}") long expirationHours
+    ) {
+        if (secret.length() < 32) {
+            throw new IllegalArgumentException("JWT secret must have at least 32 characters");
+        }
+        secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        expirationMillis = expirationHours * 3_600_000L;
     }
 
-    public String generate(UserDetails user) {
-        Instant now = Instant.now();
-        return Jwts.builder().subject(user.getUsername()).issuedAt(Date.from(now)).expiration(new Date(now.toEpochMilli() + expirationMillis)).signWith(key).compact();
+    public String generate(UserDetails authenticatedUser) {
+        Instant currentInstant = Instant.now();
+        return Jwts.builder()
+                .subject(authenticatedUser.getUsername())
+                .issuedAt(Date.from(currentInstant))
+                .expiration(new Date(currentInstant.toEpochMilli() + expirationMillis))
+                .signWith(secretKey)
+                .compact();
     }
 
     public String username(String token) {
-        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload().getSubject();
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getSubject();
     }
 
-    public boolean valid(String token, UserDetails user) {
+    public boolean valid(String token, UserDetails authenticatedUser) {
         try {
-            return user.getUsername().equalsIgnoreCase(username(token)) && Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload().getExpiration().after(new Date());
-        } catch (JwtException | IllegalArgumentException e) {
+            return authenticatedUser.getUsername().equalsIgnoreCase(username(token))
+                    && Jwts.parser().verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .getExpiration()
+                    .after(new Date());
+        } catch (JwtException | IllegalArgumentException exception) {
             return false;
         }
     }

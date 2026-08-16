@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.*;
 
 public interface CompletionRepository extends JpaRepository<ActivityCompletion, Long> {
-    Optional<ActivityCompletion> findByUserIdAndActivityId(Long u, Long a);
+    Optional<ActivityCompletion> findByUserIdAndActivityId(Long userId, Long activityId);
 
-    boolean existsByUserIdAndActivityId(Long u, Long a);
+    boolean existsByUserIdAndActivityId(Long userId, Long activityId);
 }

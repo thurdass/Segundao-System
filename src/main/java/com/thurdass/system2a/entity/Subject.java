@@ -24,9 +24,9 @@ public class Subject {
     @ManyToMany(mappedBy = "subjects")
     Set<Teacher> teachers = new HashSet<>();
 
-    public Subject(String n, String s, Classroom c) {
-        name = n;
-        shortName = s;
-        classroom = c;
+    public Subject(String subjectName, String subjectShortName, Classroom classroom) {
+        name = subjectName;
+        shortName = subjectShortName;
+        this.classroom = classroom;
     }
 }

@@ -11,32 +11,43 @@ import java.util.*;
 
 @Service
 public class NextClassService {
-    final ClassScheduleRepository schedules;
+    final ClassScheduleRepository scheduleRepository;
     final Clock clock;
 
-    public NextClassService(ClassScheduleRepository s) {
-        this(s, Clock.system(ZoneId.of("America/Sao_Paulo")));
+    public NextClassService(ClassScheduleRepository scheduleRepository) {
+        this(scheduleRepository, Clock.system(ZoneId.of("America/Sao_Paulo")));
     }
 
     @Autowired
-    public NextClassService(ClassScheduleRepository s, Clock c) {
-        schedules = s;
-        clock = c;
+    public NextClassService(ClassScheduleRepository scheduleRepository, Clock clock) {
+        this.scheduleRepository = scheduleRepository;
+        this.clock = clock;
     }
 
     public ClassSchedule next(Long subjectId, Long classroomId) {
-        var now = ZonedDateTime.now(clock);
-        return schedules.findBySubjectIdAndClassroomId(subjectId, classroomId).stream().filter(x -> {
-            int d = (x.getDayOfWeek().getValue() - now.getDayOfWeek().getValue() + 7) % 7;
-            return d > 0 || x.getStartTime().isAfter(now.toLocalTime());
-        }).min(Comparator.comparingLong(x -> {
-            int d = (x.getDayOfWeek().getValue() - now.getDayOfWeek().getValue() + 7) % 7;
-            return d * 1440L + x.getStartTime().toSecondOfDay() / 60;
-        })).orElseThrow(() -> new BusinessException("No next class configured for this subject"));
+        var currentDateTime = ZonedDateTime.now(clock);
+        return scheduleRepository.findBySubjectIdAndClassroomId(subjectId, classroomId)
+                .stream()
+                .filter(schedule -> {
+                    int daysUntilClass = (schedule.getDayOfWeek().getValue()
+                            - currentDateTime.getDayOfWeek().getValue() + 7) % 7;
+                    return daysUntilClass > 0
+                            || schedule.getStartTime().isAfter(currentDateTime.toLocalTime());
+                })
+                .min(Comparator.comparingLong(schedule -> {
+                    int daysUntilClass = (schedule.getDayOfWeek().getValue()
+                            - currentDateTime.getDayOfWeek().getValue() + 7) % 7;
+                    return daysUntilClass * 1440L
+                            + schedule.getStartTime().toSecondOfDay() / 60;
+                }))
+                .orElseThrow(() -> new BusinessException("No next class configured for this subject"));
     }
 
-    public LocalDate date(ClassSchedule x) {
-        var n = LocalDate.now(clock);
-        return n.plusDays((x.getDayOfWeek().getValue() - n.getDayOfWeek().getValue() + 7) % 7);
+    public LocalDate date(ClassSchedule classSchedule) {
+        var currentDate = LocalDate.now(clock);
+        return currentDate.plusDays(
+                (classSchedule.getDayOfWeek().getValue()
+                        - currentDate.getDayOfWeek().getValue() + 7) % 7
+        );
     }
 }

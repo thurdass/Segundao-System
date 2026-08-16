@@ -34,15 +34,15 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource(
             @Value("${app.frontend-origin:http://localhost:5173,http://127.0.0.1:5173}") String frontendOrigin
     ) {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(parseFrontendOrigins(frontendOrigin));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
-        configuration.setAllowCredentials(false);
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+        corsConfiguration.setAllowedOrigins(parseFrontendOrigins(frontendOrigin));
+        corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        corsConfiguration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        corsConfiguration.setAllowCredentials(false);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
+        UrlBasedCorsConfigurationSource corsConfigurationSource = new UrlBasedCorsConfigurationSource();
+        corsConfigurationSource.registerCorsConfiguration("/**", corsConfiguration);
+        return corsConfigurationSource;
     }
 
     private List<String> parseFrontendOrigins(String frontendOrigin) {
@@ -53,15 +53,15 @@ public class SecurityConfig {
     }
 
     @Bean
-    UserDetailsService userDetailsService(UserRepository repo) {
-        return username -> repo.findByUsernameIgnoreCase(username)
+    UserDetailsService userDetailsService(UserRepository userRepository) {
+        return username -> userRepository.findByUsernameIgnoreCase(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
     @Bean
     SecurityFilterChain filterChain(
             HttpSecurity http,
-            JwtAuthenticationFilter jwt,
+            JwtAuthenticationFilter jwtAuthenticationFilter,
             MustChangePasswordAuthorizationManager mustChangePasswordAuthorizationManager
     ) throws Exception {
         return http
@@ -83,7 +83,7 @@ public class SecurityConfig {
                         .anyRequest()
                         .access(mustChangePasswordAuthorizationManager)
                 )
-                .addFilterBefore(jwt, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 }

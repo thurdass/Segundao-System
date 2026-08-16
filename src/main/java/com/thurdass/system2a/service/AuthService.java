@@ -25,78 +25,89 @@ import java.util.Locale;
 public class AuthService {
     private final UserRepository users;
     private final ClassroomRepository classrooms;
-    private final PasswordEncoder encoder;
-    private final AuthenticationManager auth;
-    private final JwtService jwt;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
-    public AuthService(UserRepository users, ClassroomRepository classrooms, PasswordEncoder encoder,
-                       AuthenticationManager auth, JwtService jwt) {
+    public AuthService(
+            UserRepository users,
+            ClassroomRepository classrooms,
+            PasswordEncoder passwordEncoder,
+            AuthenticationManager authenticationManager,
+            JwtService jwtService
+    ) {
         this.users = users;
         this.classrooms = classrooms;
-        this.encoder = encoder;
-        this.auth = auth;
-        this.jwt = jwt;
+        this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
     @Transactional
-    public UserResponse createByAdmin(AdminUserRequest request) {
-        String username = normalizeUsername(request.username());
-        if (users.existsByUsernameIgnoreCase(username)) {
+    public UserResponse createByAdmin(AdminUserRequest adminUserRequest) {
+        String normalizedUsername = normalizeUsername(adminUserRequest.username());
+        if (users.existsByUsernameIgnoreCase(normalizedUsername)) {
             throw new BusinessException("Username already in use");
         }
 
-        var classroom = classrooms.findById(request.classroomId())
+        var classroom = classrooms.findById(adminUserRequest.classroomId())
                 .orElseThrow(() -> new ResourceNotFoundException("Classroom not found"));
-        Role role = resolveRole(request.role());
+        Role role = resolveRole(adminUserRequest.role());
         if (role != Role.STUDENT) {
             throw new BusinessException("Only STUDENT users can be created by an administrator");
         }
 
-        User user = new User(
-                username,
-                encoder.encode(request.password()),
-                request.displayName().trim(),
+        User newUser = new User(
+                normalizedUsername,
+                passwordEncoder.encode(adminUserRequest.password()),
+                adminUserRequest.displayName().trim(),
                 classroom
         );
-        user.setRole(role);
-        user.setMustChangePassword(true);
+        newUser.setRole(role);
+        newUser.setMustChangePassword(true);
 
-        return UserResponse.from(users.save(user));
+        return UserResponse.from(users.save(newUser));
     }
 
-    public AuthResponse login(LoginRequest r) {
-        String username = normalizeUsername(r.username());
-        User user = users.findByUsernameIgnoreCase(username)
+    public AuthResponse login(LoginRequest loginRequest) {
+        String username = normalizeUsername(loginRequest.username());
+        User authenticatedUser = users.findByUsernameIgnoreCase(username)
                 .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
-        auth.authenticate(new UsernamePasswordAuthenticationToken(username, r.password()));
-        return new AuthResponse(jwt.generate(user), UserResponse.from(user), user.isMustChangePassword());
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(username, loginRequest.password())
+        );
+        return new AuthResponse(
+                jwtService.generate(authenticatedUser),
+                UserResponse.from(authenticatedUser),
+                authenticatedUser.isMustChangePassword()
+        );
     }
 
     @Transactional
-    public UserResponse changePassword(User user, PasswordChangeRequest request) {
-        if (!encoder.matches(request.currentPassword(), user.getPassword())) {
+    public UserResponse changePassword(User authenticatedUser, PasswordChangeRequest passwordChangeRequest) {
+        if (!passwordEncoder.matches(passwordChangeRequest.currentPassword(), authenticatedUser.getPassword())) {
             throw new BusinessException("Current password is incorrect");
         }
-        if (encoder.matches(request.newPassword(), user.getPassword())) {
+        if (passwordEncoder.matches(passwordChangeRequest.newPassword(), authenticatedUser.getPassword())) {
             throw new BusinessException("New password must be different");
         }
 
-        user.setPassword(encoder.encode(request.newPassword()));
-        user.setMustChangePassword(false);
-        return UserResponse.from(users.save(user));
+        authenticatedUser.setPassword(passwordEncoder.encode(passwordChangeRequest.newPassword()));
+        authenticatedUser.setMustChangePassword(false);
+        return UserResponse.from(users.save(authenticatedUser));
     }
 
     private String normalizeUsername(String username) {
         return username.trim().toLowerCase(Locale.ROOT);
     }
 
-    private Role resolveRole(String role) {
-        if (role == null || role.isBlank()) {
+    private Role resolveRole(String requestedRole) {
+        if (requestedRole == null || requestedRole.isBlank()) {
             return Role.STUDENT;
         }
 
         try {
-            return Role.valueOf(role.trim().toUpperCase(Locale.ROOT));
+            return Role.valueOf(requestedRole.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException exception) {
             throw new BusinessException("Invalid role");
         }

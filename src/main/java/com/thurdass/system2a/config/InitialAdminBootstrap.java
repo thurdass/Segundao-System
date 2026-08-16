@@ -45,7 +45,7 @@ public class InitialAdminBootstrap implements CommandLineRunner {
 
     @Override
     @Transactional
-    public void run(String... args) {
+    public void run(String... applicationArguments) {
         if (!enabled) {
             return;
         }

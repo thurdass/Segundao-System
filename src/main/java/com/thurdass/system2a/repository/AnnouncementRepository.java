@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.*;
 
 public interface AnnouncementRepository extends JpaRepository<Announcement, Long> {
-    List<Announcement> findByClassroomIdAndActiveTrueOrderByPinnedDescCreatedAtDesc(Long id);
+    List<Announcement> findByClassroomIdAndActiveTrueOrderByPinnedDescCreatedAtDesc(Long classroomId);
 
     long countByActiveTrue();
 }

@@ -1,4 +1,4 @@
-import { BookOpen, CalendarPlus, CircleAlert, Clock3, GraduationCap, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { BookOpen, CalendarPlus, CircleAlert, Clock3, GraduationCap, Pencil, Plus, Trash2, X as CloseIcon } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { getApiErrorMessage } from '../api/client'
 import { schoolApi } from '../api/school'
@@ -99,7 +99,7 @@ function SubjectForm({
           <h3 id="admin-subject-form-title">Nova disciplina</h3>
         </div>
         <button className="icon-button" type="button" aria-label="Fechar formulário" onClick={onCancel}>
-          <X size={18} aria-hidden="true" />
+          <CloseIcon size={18} aria-hidden="true" />
         </button>
       </div>
       <form className="data-form" onSubmit={onSubmit} noValidate>
@@ -167,7 +167,7 @@ function TeacherForm({
           <h3 id="admin-teacher-form-title">{editingTeacher ? 'Editar professor' : 'Novo professor'}</h3>
         </div>
         <button className="icon-button" type="button" aria-label="Fechar formulário" onClick={onCancel}>
-          <X size={18} aria-hidden="true" />
+          <CloseIcon size={18} aria-hidden="true" />
         </button>
       </div>
       <form className="data-form" onSubmit={onSubmit} noValidate>
@@ -254,7 +254,7 @@ function ScheduleForm({
           <h3 id="admin-schedule-form-title">Novo horário</h3>
         </div>
         <button className="icon-button" type="button" aria-label="Fechar formulário" onClick={onCancel}>
-          <X size={18} aria-hidden="true" />
+          <CloseIcon size={18} aria-hidden="true" />
         </button>
       </div>
       <form className="data-form" onSubmit={onSubmit} noValidate>

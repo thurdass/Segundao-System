@@ -22,35 +22,57 @@ public class SchoolController {
     final SubjectRepository subjects;
     final TeacherRepository teachers;
     final ClassScheduleRepository schedules;
-    final NextClassService nextClass;
+    final NextClassService nextClassService;
 
-    public SchoolController(ClassroomRepository c, SubjectRepository s, TeacherRepository t, ClassScheduleRepository h, NextClassService n) {
-        classrooms = c;
-        subjects = s;
-        teachers = t;
-        schedules = h;
-        nextClass = n;
+    public SchoolController(
+            ClassroomRepository classroomRepository,
+            SubjectRepository subjectRepository,
+            TeacherRepository teacherRepository,
+            ClassScheduleRepository scheduleRepository,
+            NextClassService nextClassService
+    ) {
+        this.classrooms = classroomRepository;
+        this.subjects = subjectRepository;
+        this.teachers = teacherRepository;
+        this.schedules = scheduleRepository;
+        this.nextClassService = nextClassService;
     }
 
     @GetMapping("/subjects")
-    public List<SubjectView> subjects(@RequestParam Long classroomId) {
+    public List<SubjectView> subjects(@RequestParam("classroomId") Long classroomId) {
         return subjects.findByClassroomIdAndActiveTrue(classroomId).stream().map(SubjectView::of).toList();
     }
 
     @GetMapping("/subjects/{subjectId}/next-class")
-    public NextClassResponse nextClass(@PathVariable Long subjectId, @AuthenticationPrincipal User user) {
-        var subject = subjects.findById(subjectId).orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
-        if (!user.getRole().name().equals("ADMIN") && !subject.getClassroom().getId().equals(user.getClassroom().getId()))
+    public NextClassResponse nextClass(
+            @PathVariable("subjectId") Long subjectId,
+            @AuthenticationPrincipal User authenticatedUser
+    ) {
+        var subject = subjects.findById(subjectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+        if (!authenticatedUser.getRole().name().equals("ADMIN")
+                && !subject.getClassroom().getId().equals(authenticatedUser.getClassroom().getId())) {
             throw new ResourceNotFoundException("Subject not found");
-        var schedule = nextClass.next(subjectId, subject.getClassroom().getId());
-        return NextClassResponse.of(subject.getId(), subject.getName(), nextClass.date(schedule), schedule);
+        }
+        var nextClassSchedule = nextClassService.next(subjectId, subject.getClassroom().getId());
+        return NextClassResponse.of(
+                subject.getId(),
+                subject.getName(),
+                nextClassService.date(nextClassSchedule),
+                nextClassSchedule
+        );
     }
 
     @PostMapping("/subjects")
     @PreAuthorize("hasRole('ADMIN')")
-    public SubjectView addSubject(@Valid @RequestBody SubjectRequest r) {
-        var c = classrooms.findById(r.classroomId()).orElseThrow(() -> new ResourceNotFoundException("Classroom not found"));
-        return SubjectView.of(subjects.save(new Subject(r.name().trim(), r.shortName(), c)));
+    public SubjectView addSubject(@Valid @RequestBody SubjectRequest subjectRequest) {
+        var classroom = classrooms.findById(subjectRequest.classroomId())
+                .orElseThrow(() -> new ResourceNotFoundException("Classroom not found"));
+        return SubjectView.of(subjects.save(new Subject(
+                subjectRequest.name().trim(),
+                subjectRequest.shortName(),
+                classroom
+        )));
     }
 
     @GetMapping("/teachers")
@@ -59,31 +81,37 @@ public class SchoolController {
     }
 
     @GetMapping("/teachers/{id}")
-    public TeacherView teacher(@PathVariable Long id) {
-        return TeacherView.of(teachers.findById(id).orElseThrow(() -> new ResourceNotFoundException("Teacher not found")));
+    public TeacherView teacher(@PathVariable("id") Long teacherId) {
+        return TeacherView.of(teachers.findById(teacherId)
+                .orElseThrow(() -> new ResourceNotFoundException("Teacher not found")));
     }
 
     @PostMapping("/teachers")
     @PreAuthorize("hasRole('ADMIN')")
-    public TeacherView addTeacher(@Valid @RequestBody TeacherRequest r) {
-        var t = new Teacher(r.name().trim(), r.email());
-        if (r.subjectIds() != null) t.getSubjects().addAll(subjects.findAllById(r.subjectIds()));
-        return TeacherView.of(teachers.save(t));
+    public TeacherView addTeacher(@Valid @RequestBody TeacherRequest teacherRequest) {
+        var teacher = new Teacher(teacherRequest.name().trim(), teacherRequest.email());
+        if (teacherRequest.subjectIds() != null) {
+            teacher.getSubjects().addAll(subjects.findAllById(teacherRequest.subjectIds()));
+        }
+        return TeacherView.of(teachers.save(teacher));
     }
 
     @PutMapping("/teachers/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    public TeacherView editTeacher(@PathVariable Long id, @Valid @RequestBody TeacherRequest request) {
-        Teacher teacher = teachers.findById(id)
+    public TeacherView editTeacher(
+            @PathVariable("id") Long teacherId,
+            @Valid @RequestBody TeacherRequest teacherRequest
+    ) {
+        Teacher teacher = teachers.findById(teacherId)
                 .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"));
 
-        teacher.setName(request.name().trim());
-        teacher.setEmail(request.email());
+        teacher.setName(teacherRequest.name().trim());
+        teacher.setEmail(teacherRequest.email());
 
-        if (request.subjectIds() != null) {
+        if (teacherRequest.subjectIds() != null) {
             teacher.getSubjects().clear();
-            teacher.getSubjects().addAll(subjects.findAllById(request.subjectIds()));
+            teacher.getSubjects().addAll(subjects.findAllById(teacherRequest.subjectIds()));
         }
 
         return TeacherView.of(teachers.save(teacher));
@@ -91,32 +119,47 @@ public class SchoolController {
 
     @GetMapping("/teachers/{id}/subjects")
     @Transactional(readOnly = true)
-    public List<SubjectView> teacherSubjects(@PathVariable Long id) {
-        return teachers.findById(id).orElseThrow(() -> new ResourceNotFoundException("Teacher not found")).getSubjects().stream().map(SubjectView::of).toList();
+    public List<SubjectView> teacherSubjects(@PathVariable("id") Long teacherId) {
+        return teachers.findById(teacherId)
+                .orElseThrow(() -> new ResourceNotFoundException("Teacher not found"))
+                .getSubjects()
+                .stream()
+                .map(SubjectView::of)
+                .toList();
     }
 
     @GetMapping("/schedules/classroom/{id}")
-    public List<ScheduleView> schedule(@PathVariable Long id) {
-        return schedules.findByClassroomIdOrderByDayOfWeekAscStartTimeAsc(id).stream().map(ScheduleView::of).toList();
+    public List<ScheduleView> schedule(@PathVariable("id") Long classroomId) {
+        return schedules.findByClassroomIdOrderByDayOfWeekAscStartTimeAsc(classroomId)
+                .stream()
+                .map(ScheduleView::of)
+                .toList();
     }
 
     @PostMapping("/schedules")
     @PreAuthorize("hasRole('ADMIN')")
-    public ScheduleView addSchedule(@Valid @RequestBody ScheduleRequest r) {
-        var x = new ClassSchedule();
-        x.setClassroom(classrooms.findById(r.classroomId()).orElseThrow(() -> new ResourceNotFoundException("Classroom not found")));
-        x.setSubject(subjects.findById(r.subjectId()).orElseThrow(() -> new ResourceNotFoundException("Subject not found")));
-        x.setTeacher(r.teacherId() == null ? null : teachers.findById(r.teacherId()).orElseThrow(() -> new ResourceNotFoundException("Teacher not found")));
-        x.setDayOfWeek(r.dayOfWeek());
-        x.setStartTime(r.startTime());
-        x.setEndTime(r.endTime());
-        return ScheduleView.of(schedules.save(x));
+    public ScheduleView addSchedule(@Valid @RequestBody ScheduleRequest scheduleRequest) {
+        var classSchedule = new ClassSchedule();
+        classSchedule.setClassroom(classrooms.findById(scheduleRequest.classroomId())
+                .orElseThrow(() -> new ResourceNotFoundException("Classroom not found")));
+        classSchedule.setSubject(subjects.findById(scheduleRequest.subjectId())
+                .orElseThrow(() -> new ResourceNotFoundException("Subject not found")));
+        classSchedule.setTeacher(scheduleRequest.teacherId() == null
+                ? null
+                : teachers.findById(scheduleRequest.teacherId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Teacher not found")));
+        classSchedule.setDayOfWeek(scheduleRequest.dayOfWeek());
+        classSchedule.setStartTime(scheduleRequest.startTime());
+        classSchedule.setEndTime(scheduleRequest.endTime());
+        return ScheduleView.of(schedules.save(classSchedule));
     }
 
     @DeleteMapping("/schedules/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public void deleteSchedule(@PathVariable Long id) {
-        if (!schedules.existsById(id)) throw new ResourceNotFoundException("Schedule not found");
-        schedules.deleteById(id);
+    public void deleteSchedule(@PathVariable("id") Long scheduleId) {
+        if (!schedules.existsById(scheduleId)) {
+            throw new ResourceNotFoundException("Schedule not found");
+        }
+        schedules.deleteById(scheduleId);
     }
 }

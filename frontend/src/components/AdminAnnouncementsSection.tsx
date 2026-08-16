@@ -1,4 +1,4 @@
-import { CircleAlert, Megaphone, Pencil, Pin, Plus, Trash2, X } from 'lucide-react'
+import { CircleAlert, Megaphone, Pencil, Pin, Plus, Trash2, X as CloseIcon } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { announcementsApi } from '../api/announcements'
 import { getApiErrorMessage } from '../api/client'
@@ -42,7 +42,7 @@ function AnnouncementForm({
           </h3>
         </div>
         <button className="icon-button" type="button" aria-label="Fechar formulário" onClick={onCancel}>
-          <X size={18} aria-hidden="true" />
+          <CloseIcon size={18} aria-hidden="true" />
         </button>
       </div>
       <form className="data-form" onSubmit={onSubmit} noValidate>

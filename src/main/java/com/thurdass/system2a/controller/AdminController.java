@@ -29,19 +29,23 @@ public class AdminController {
     private final UserRepository users;
     private final ActivityRepository activities;
     private final AnnouncementRepository announcements;
-    private final AuthService auth;
+    private final AuthService authService;
 
-    public AdminController(UserRepository users, ActivityRepository activities,
-                           AnnouncementRepository announcements, AuthService auth) {
-        this.users = users;
-        this.activities = activities;
-        this.announcements = announcements;
-        this.auth = auth;
+    public AdminController(
+            UserRepository userRepository,
+            ActivityRepository activityRepository,
+            AnnouncementRepository announcementRepository,
+            AuthService authService
+    ) {
+        this.users = userRepository;
+        this.activities = activityRepository;
+        this.announcements = announcementRepository;
+        this.authService = authService;
     }
 
     @PostMapping("/users")
-    public UserResponse createUser(@Valid @RequestBody AdminUserRequest request) {
-        return auth.createByAdmin(request);
+    public UserResponse createUser(@Valid @RequestBody AdminUserRequest adminUserRequest) {
+        return authService.createByAdmin(adminUserRequest);
     }
 
     @GetMapping("/users")
@@ -53,18 +57,21 @@ public class AdminController {
     }
 
     @GetMapping("/users/{id}")
-    public UserResponse user(@PathVariable Long id) {
-        User user = users.findById(id)
+    public UserResponse user(@PathVariable("id") Long userId) {
+        User userAccount = users.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        return UserResponse.from(user);
+        return UserResponse.from(userAccount);
     }
 
     @PatchMapping("/users/{id}/status")
-    public UserResponse status(@PathVariable Long id, @RequestParam boolean enabled) {
-        User user = users.findById(id)
+    public UserResponse status(
+            @PathVariable("id") Long userId,
+            @RequestParam("enabled") boolean accountEnabled
+    ) {
+        User userAccount = users.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        user.setEnabled(enabled);
-        return UserResponse.from(users.save(user));
+        userAccount.setEnabled(accountEnabled);
+        return UserResponse.from(users.save(userAccount));
     }
 
     @GetMapping("/dashboard")

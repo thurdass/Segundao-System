@@ -20,97 +20,193 @@ public class ActivityController {
     final ActivityRepository activities;
     final CompletionRepository completions;
     final SubjectRepository subjects;
-    final NextClassService next;
+    final NextClassService nextClassService;
 
-    public ActivityController(ActivityRepository a, CompletionRepository c, SubjectRepository s, NextClassService n) {
-        activities = a;
-        completions = c;
-        subjects = s;
-        next = n;
+    public ActivityController(
+            ActivityRepository activityRepository,
+            CompletionRepository completionRepository,
+            SubjectRepository subjectRepository,
+            NextClassService nextClassService
+    ) {
+        activities = activityRepository;
+        completions = completionRepository;
+        subjects = subjectRepository;
+        this.nextClassService = nextClassService;
     }
 
     @GetMapping
-    public List<ActivityResponse> list(@AuthenticationPrincipal User u, @RequestParam(required = false) String status, @RequestParam(required = false) Long subjectId, @RequestParam(required = false) LocalDate dueBefore) {
-        return activities.findByClassroomIdAndActiveTrueOrderByDueDateAsc(u.getClassroom().getId()).stream().filter(a -> subjectId == null || a.getSubject().getId().equals(subjectId)).filter(a -> dueBefore == null || !a.getDueDate().isAfter(dueBefore)).filter(a -> {
-            boolean done = completions.existsByUserIdAndActivityId(u.getId(), a.getId());
-            return status == null || status.equalsIgnoreCase(done ? "completed" : "pending");
-        }).map(a -> ActivityResponse.of(a, completions.findByUserIdAndActivityId(u.getId(), a.getId()).orElse(null))).toList();
+    public List<ActivityResponse> list(
+            @AuthenticationPrincipal User authenticatedUser,
+            @RequestParam(name = "status", required = false) String statusFilter,
+            @RequestParam(name = "subjectId", required = false) Long subjectId,
+            @RequestParam(name = "dueBefore", required = false) LocalDate dueDateBefore
+    ) {
+        return activities.findByClassroomIdAndActiveTrueOrderByDueDateAsc(
+                        authenticatedUser.getClassroom().getId()
+                )
+                .stream()
+                .filter(activity -> subjectId == null
+                        || activity.getSubject().getId().equals(subjectId))
+                .filter(activity -> dueDateBefore == null
+                        || !activity.getDueDate().isAfter(dueDateBefore))
+                .filter(activity -> {
+                    boolean isCompleted = completions.existsByUserIdAndActivityId(
+                            authenticatedUser.getId(),
+                            activity.getId()
+                    );
+                    return statusFilter == null
+                            || statusFilter.equalsIgnoreCase(isCompleted ? "completed" : "pending");
+                })
+                .map(activity -> ActivityResponse.of(
+                        activity,
+                        completions.findByUserIdAndActivityId(
+                                authenticatedUser.getId(),
+                                activity.getId()
+                        ).orElse(null)
+                ))
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public ActivityResponse get(@PathVariable Long id, @AuthenticationPrincipal User u) {
-        var a = activities.findById(id).orElseThrow(() -> new ResourceNotFoundException("Activity not found"));
-        if (!a.getClassroom().getId().equals(u.getClassroom().getId()))
-            throw new ResourceNotFoundException("Activity not found");
-        return ActivityResponse.of(a, completions.findByUserIdAndActivityId(u.getId(), id).orElse(null));
+    public ActivityResponse get(
+            @PathVariable("id") Long activityId,
+            @AuthenticationPrincipal User authenticatedUser
+    ) {
+        Activity activity = getActivity(activityId, authenticatedUser);
+        return ActivityResponse.of(
+                activity,
+                completions.findByUserIdAndActivityId(
+                        authenticatedUser.getId(),
+                        activityId
+                ).orElse(null)
+        );
     }
 
     @PostMapping
-    public ActivityResponse add(@Valid @RequestBody ActivityRequest r, @AuthenticationPrincipal User u) {
-        var s = subjects.findById(r.subjectId()).orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
-        if (!s.getClassroom().getId().equals(u.getClassroom().getId()))
+    public ActivityResponse add(
+            @Valid @RequestBody ActivityRequest activityRequest,
+            @AuthenticationPrincipal User authenticatedUser
+    ) {
+        var subject = subjects.findById(activityRequest.subjectId())
+                .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+        if (!subject.getClassroom().getId().equals(authenticatedUser.getClassroom().getId())) {
             throw new BusinessException("Activity must belong to your classroom");
-        LocalDate due = r.dueDate();
-        if (r.deadlineMode() == DeadlineMode.NEXT_CLASS)
-            due = next.date(next.next(s.getId(), u.getClassroom().getId()));
-        if (due == null || due.isBefore(LocalDate.now()))
+        }
+
+        LocalDate dueDate = activityRequest.dueDate();
+        if (activityRequest.deadlineMode() == DeadlineMode.NEXT_CLASS) {
+            dueDate = nextClassService.date(
+                    nextClassService.next(subject.getId(), authenticatedUser.getClassroom().getId())
+            );
+        }
+        if (dueDate == null || dueDate.isBefore(LocalDate.now())) {
             throw new BusinessException("Due date must be today or later");
-        var a = new Activity();
-        a.setTitle(r.title().trim());
-        a.setDescription(r.description());
-        a.setDueDate(due);
-        a.setSubject(s);
-        a.setClassroom(u.getClassroom());
-        a.setCreatedBy(u);
-        return ActivityResponse.of(activities.save(a), null);
+        }
+
+        var activity = new Activity();
+        activity.setTitle(activityRequest.title().trim());
+        activity.setDescription(activityRequest.description());
+        activity.setDueDate(dueDate);
+        activity.setSubject(subject);
+        activity.setClassroom(authenticatedUser.getClassroom());
+        activity.setCreatedBy(authenticatedUser);
+        return ActivityResponse.of(activities.save(activity), null);
     }
 
     @PostMapping("/{id}/complete")
-    public ActivityResponse complete(@PathVariable Long id, @AuthenticationPrincipal User u) {
-        var a = getActivity(id, u);
-        if (completions.existsByUserIdAndActivityId(u.getId(), id))
+    public ActivityResponse complete(
+            @PathVariable("id") Long activityId,
+            @AuthenticationPrincipal User authenticatedUser
+    ) {
+        Activity activity = getActivity(activityId, authenticatedUser);
+        if (completions.existsByUserIdAndActivityId(authenticatedUser.getId(), activityId)) {
             throw new BusinessException("Activity already completed");
-        var c = new ActivityCompletion();
-        c.setActivity(a);
-        c.setUser(u);
-        return ActivityResponse.of(a, completions.save(c));
+        }
+
+        var completion = new ActivityCompletion();
+        completion.setActivity(activity);
+        completion.setUser(authenticatedUser);
+        return ActivityResponse.of(activity, completions.save(completion));
     }
 
     @DeleteMapping("/{id}/complete")
-    public void uncomplete(@PathVariable Long id, @AuthenticationPrincipal User u) {
-        getActivity(id, u);
-        var completion = completions.findByUserIdAndActivityId(u.getId(), id).orElseThrow(() -> new BusinessException("Activity is not completed by this user"));
+    public void uncomplete(
+            @PathVariable("id") Long activityId,
+            @AuthenticationPrincipal User authenticatedUser
+    ) {
+        getActivity(activityId, authenticatedUser);
+        var completion = completions.findByUserIdAndActivityId(
+                        authenticatedUser.getId(),
+                        activityId
+                )
+                .orElseThrow(() -> new BusinessException("Activity is not completed by this user"));
         completions.delete(completion);
     }
 
     @PutMapping("/{id}")
-    public ActivityResponse edit(@PathVariable Long id, @Valid @RequestBody ActivityRequest r, @AuthenticationPrincipal User u) {
-        var a = getActivity(id, u);
-        if (!a.getCreatedBy().getId().equals(u.getId()) && !u.getRole().name().equals("ADMIN"))
-            throw new org.springframework.security.access.AccessDeniedException("Only creator or admin can edit");
-        var s = subjects.findById(r.subjectId()).orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
-        if (!s.getClassroom().getId().equals(u.getClassroom().getId()))
+    public ActivityResponse edit(
+            @PathVariable("id") Long activityId,
+            @Valid @RequestBody ActivityRequest activityRequest,
+            @AuthenticationPrincipal User authenticatedUser
+    ) {
+        Activity activity = getActivity(activityId, authenticatedUser);
+        if (!activity.getCreatedBy().getId().equals(authenticatedUser.getId())
+                && !authenticatedUser.getRole().name().equals("ADMIN")) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Only creator or admin can edit"
+            );
+        }
+
+        var subject = subjects.findById(activityRequest.subjectId())
+                .orElseThrow(() -> new ResourceNotFoundException("Subject not found"));
+        if (!subject.getClassroom().getId().equals(authenticatedUser.getClassroom().getId())) {
             throw new BusinessException("Subject must belong to your classroom");
-        a.setTitle(r.title().trim());
-        a.setDescription(r.description());
-        a.setSubject(s);
-        a.setDueDate(r.deadlineMode() == DeadlineMode.NEXT_CLASS ? next.date(next.next(s.getId(), u.getClassroom().getId())) : r.dueDate());
-        return ActivityResponse.of(activities.save(a), completions.findByUserIdAndActivityId(u.getId(), id).orElse(null));
+        }
+
+        activity.setTitle(activityRequest.title().trim());
+        activity.setDescription(activityRequest.description());
+        activity.setSubject(subject);
+        activity.setDueDate(
+                activityRequest.deadlineMode() == DeadlineMode.NEXT_CLASS
+                        ? nextClassService.date(
+                                nextClassService.next(
+                                        subject.getId(),
+                                        authenticatedUser.getClassroom().getId()
+                                )
+                        )
+                        : activityRequest.dueDate()
+        );
+        return ActivityResponse.of(
+                activities.save(activity),
+                completions.findByUserIdAndActivityId(
+                        authenticatedUser.getId(),
+                        activityId
+                ).orElse(null)
+        );
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id, @AuthenticationPrincipal User u) {
-        var a = getActivity(id, u);
-        if (!a.getCreatedBy().getId().equals(u.getId()) && !u.getRole().name().equals("ADMIN"))
-            throw new org.springframework.security.access.AccessDeniedException("Only creator or admin can delete");
-        a.setActive(false);
-        activities.save(a);
+    public void delete(
+            @PathVariable("id") Long activityId,
+            @AuthenticationPrincipal User authenticatedUser
+    ) {
+        Activity activity = getActivity(activityId, authenticatedUser);
+        if (!activity.getCreatedBy().getId().equals(authenticatedUser.getId())
+                && !authenticatedUser.getRole().name().equals("ADMIN")) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "Only creator or admin can delete"
+            );
+        }
+        activity.setActive(false);
+        activities.save(activity);
     }
 
-    private Activity getActivity(Long id, User u) {
-        var a = activities.findById(id).orElseThrow(() -> new ResourceNotFoundException("Activity not found"));
-        if (!a.getClassroom().getId().equals(u.getClassroom().getId()))
+    private Activity getActivity(Long activityId, User authenticatedUser) {
+        var activity = activities.findById(activityId)
+                .orElseThrow(() -> new ResourceNotFoundException("Activity not found"));
+        if (!activity.getClassroom().getId().equals(authenticatedUser.getClassroom().getId())) {
             throw new ResourceNotFoundException("Activity not found");
-        return a;
+        }
+        return activity;
     }
 }

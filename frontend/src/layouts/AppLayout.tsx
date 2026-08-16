@@ -10,7 +10,7 @@ import {
   School,
   Settings2,
   UserRound,
-  X,
+  X as CloseIcon,
 } from 'lucide-react'
 import { useState, type ComponentType } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
@@ -82,7 +82,7 @@ export function AppLayout() {
             </div>
           </div>
           <button className="icon-button sidebar-close" type="button" aria-label="Fechar menu" onClick={closeSidebar}>
-            <X size={20} aria-hidden="true" />
+            <CloseIcon size={20} aria-hidden="true" />
           </button>
         </div>
 

@@ -13,8 +13,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class NextClassServiceTest {
-    private static final ZoneId ZONE = ZoneId.of("America/Sao_Paulo");
-    private static final ZonedDateTime NOW = ZonedDateTime.of(2026, 8, 13, 10, 0, 0, 0, ZONE);
+    private static final ZoneId SAO_PAULO_ZONE = ZoneId.of("America/Sao_Paulo");
+    private static final ZonedDateTime FIXED_CURRENT_TIME =
+            ZonedDateTime.of(2026, 8, 13, 10, 0, 0, 0, SAO_PAULO_ZONE);
 
     @Test
     void selectsLaterClassOnTheCurrentDayAndIgnoresEarlierClass() {
@@ -41,27 +42,30 @@ class NextClassServiceTest {
 
     @Test
     void rejectsSubjectWithoutSchedule() {
-        ClassScheduleRepository repo = mock(ClassScheduleRepository.class);
-        when(repo.findBySubjectIdAndClassroomId(1L, 1L)).thenReturn(List.of());
+        ClassScheduleRepository scheduleRepository = mock(ClassScheduleRepository.class);
+        when(scheduleRepository.findBySubjectIdAndClassroomId(1L, 1L)).thenReturn(List.of());
 
-        assertThrows(BusinessException.class, () -> new NextClassService(repo, fixedClock()).next(1L, 1L));
+        assertThrows(
+                BusinessException.class,
+                () -> new NextClassService(scheduleRepository, fixedClock()).next(1L, 1L)
+        );
     }
 
     private NextClassService serviceWith(ClassSchedule... schedules) {
-        ClassScheduleRepository repo = mock(ClassScheduleRepository.class);
-        when(repo.findBySubjectIdAndClassroomId(1L, 1L)).thenReturn(List.of(schedules));
-        return new NextClassService(repo, fixedClock());
+        ClassScheduleRepository scheduleRepository = mock(ClassScheduleRepository.class);
+        when(scheduleRepository.findBySubjectIdAndClassroomId(1L, 1L)).thenReturn(List.of(schedules));
+        return new NextClassService(scheduleRepository, fixedClock());
     }
 
     private Clock fixedClock() {
-        return Clock.fixed(NOW.toInstant(), ZONE);
+        return Clock.fixed(FIXED_CURRENT_TIME.toInstant(), SAO_PAULO_ZONE);
     }
 
-    private ClassSchedule schedule(DayOfWeek day, LocalTime start) {
+    private ClassSchedule schedule(DayOfWeek dayOfWeek, LocalTime startTime) {
         ClassSchedule schedule = new ClassSchedule();
-        schedule.setDayOfWeek(day);
-        schedule.setStartTime(start);
-        schedule.setEndTime(start.plusMinutes(50));
+        schedule.setDayOfWeek(dayOfWeek);
+        schedule.setStartTime(startTime);
+        schedule.setEndTime(startTime.plusMinutes(50));
         return schedule;
     }
 }

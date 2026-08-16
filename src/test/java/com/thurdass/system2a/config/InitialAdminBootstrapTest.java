@@ -59,17 +59,17 @@ class InitialAdminBootstrapTest {
 
         bootstrap.run();
 
-        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
-        verify(users).save(captor.capture());
-        User saved = captor.getValue();
+        ArgumentCaptor<User> userArgumentCaptor = ArgumentCaptor.forClass(User.class);
+        verify(users).save(userArgumentCaptor.capture());
+        User savedUser = userArgumentCaptor.getValue();
 
-        assertEquals("thurdas", saved.getUsername());
-        assertEquals("bcrypt-hash", saved.getPassword());
-        assertEquals("Initial Admin", saved.getDisplayName());
-        assertEquals(Role.ADMIN, saved.getRole());
-        assertTrue(saved.isEnabled());
-        assertTrue(saved.isMustChangePassword());
-        assertEquals(classroom, saved.getClassroom());
+        assertEquals("thurdas", savedUser.getUsername());
+        assertEquals("bcrypt-hash", savedUser.getPassword());
+        assertEquals("Initial Admin", savedUser.getDisplayName());
+        assertEquals(Role.ADMIN, savedUser.getRole());
+        assertTrue(savedUser.isEnabled());
+        assertTrue(savedUser.isMustChangePassword());
+        assertEquals(classroom, savedUser.getClassroom());
         verify(passwordEncoder).encode("test-password");
     }
 

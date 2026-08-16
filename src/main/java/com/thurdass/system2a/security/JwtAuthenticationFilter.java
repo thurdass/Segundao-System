@@ -12,26 +12,38 @@ import java.io.IOException;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private final JwtService jwt;
-    private final UserDetailsService users;
+    private final JwtService jwtService;
+    private final UserDetailsService userDetailsService;
 
-    public JwtAuthenticationFilter(JwtService jwt, UserDetailsService users) {
-        this.jwt = jwt;
-        this.users = users;
+    public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService) {
+        this.jwtService = jwtService;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws ServletException, IOException {
-        String h = req.getHeader("Authorization");
-        if (h != null && h.startsWith("Bearer ")) {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
+        String authorizationHeader = request.getHeader("Authorization");
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             try {
-                String name = jwt.username(h.substring(7));
-                var u = users.loadUserByUsername(name);
-                if (jwt.valid(h.substring(7), u))
-                    SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(u, null, u.getAuthorities()));
-            } catch (RuntimeException ignored) {
+                String bearerToken = authorizationHeader.substring(7);
+                String username = jwtService.username(bearerToken);
+                var authenticatedUser = userDetailsService.loadUserByUsername(username);
+                if (jwtService.valid(bearerToken, authenticatedUser)) {
+                    SecurityContextHolder.getContext().setAuthentication(
+                            new UsernamePasswordAuthenticationToken(
+                                    authenticatedUser,
+                                    null,
+                                    authenticatedUser.getAuthorities()
+                            )
+                    );
+                }
+            } catch (RuntimeException authenticationException) {
             }
         }
-        chain.doFilter(req, res);
+        filterChain.doFilter(request, response);
     }
 }

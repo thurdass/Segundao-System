@@ -6,7 +6,7 @@ import {
   Pin,
   Plus,
   Trash2,
-  X,
+  X as CloseIcon,
 } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { announcementsApi } from '../api/announcements'
@@ -52,7 +52,7 @@ function AnnouncementForm({
           </h3>
         </div>
         <button className="icon-button" type="button" aria-label="Fechar formulário" onClick={onCancel}>
-          <X size={18} aria-hidden="true" />
+          <CloseIcon size={18} aria-hidden="true" />
         </button>
       </div>
 
